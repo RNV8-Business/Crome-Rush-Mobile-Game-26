@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#101733">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Chrome Rush">
+  <title>Chrome Rush</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css?v=20260709-skin-sheet-2">
+</head>
+<body>
+  <main id="app">
+    <section id="menu" class="screen menu-screen">
+      <div class="menu-glow"></div>
+      <button id="musicStart" class="logo" type="button" aria-label="Start background music" title="Tap to start music">
+        <span class="logo-visual">
+          <img src="assets/logo.png" alt="Chrome Rush">
+          <i class="logo-shine" aria-hidden="true"></i>
+          <i class="sparkle sparkle-1" aria-hidden="true">✦</i>
+          <i class="sparkle sparkle-2" aria-hidden="true">✧</i>
+          <i class="sparkle sparkle-3" aria-hidden="true">✦</i>
+          <i class="sparkle sparkle-4" aria-hidden="true">✧</i>
+          <i class="sparkle sparkle-5" aria-hidden="true">✦</i>
+        </span>
+      </button>
+      <button id="playButton" class="primary chrome-play-button">PLAY</button>
+    </section>
+
+    <section id="characterScreen" class="screen select-screen hidden">
+      <header><button class="back" data-back="menu">‹</button><div><h1>MENU</h1></div></header>
+      <div class="account-progress" aria-label="Account progress">
+        <span class="progress-highscore"><small>HIGHSCORE</small><strong id="accountHighscore">0m</strong></span>
+        <span class="progress-cars"><small>CARS</small><strong id="accountCars">1 / 49</strong></span>
+        <span class="progress-skins"><small>SKINS</small><strong id="accountSkins">1 / 50</strong></span>
+      </div>
+      <div id="characterCards" class="character-cards"></div>
+      <div class="shop-teaser" aria-label="Player and car shop">
+        <button id="shopButton" class="shop-button" type="button"><strong>SHOP</strong><small>PLAYERS &amp; CARS</small></button>
+        <span id="shopUnlockBadge" class="shop-unlock-badge hidden" aria-label="Unlockables ready">0</span>
+        <img class="shop-showcase" src="assets/shop_showcase.png" alt="Characters and cars available in the shop">
+      </div>
+      <button id="characterNext" class="primary play-game-button">PLAY THE GAME <span>→</span></button>
+    </section>
+
+    <section id="collectionScreen" class="screen select-screen shop-screen collection-screen hidden">
+      <header><button class="back" data-back="characters">‹</button><div><h1>COLLECTION</h1><p>Your unlocked skins and personal bests</p></div></header>
+      <div class="collection-summary"><span id="collectionSummaryLabel">SKINS</span><strong id="collectionCount">1 / 50</strong></div>
+      <div class="collection-type-tabs" aria-label="Collection type">
+        <button class="selected" data-collection-type="skins" type="button">SKINS</button>
+        <button data-collection-type="cars" type="button">CARS</button>
+      </div>
+      <div class="collection-sort" aria-label="Sort collection">
+        <button class="selected" data-collection-sort="date" type="button">DATE</button>
+        <button data-collection-sort="score" type="button">SCORE</button>
+      </div>
+      <div id="collectionGrid" class="shop-panel character-shop-panel collection-panel" aria-label="Owned skin collection"></div>
+    </section>
+
+    <section id="shopScreen" class="screen select-screen shop-screen hidden">
+      <header><button class="back" data-back="characters">‹</button><div><h1>SHOP</h1><p>Unlock characters and upgrade your ride</p></div></header>
+      <div class="shop-wallet-bar">
+        <span><i class="gold-coin-icon">$</i> GOLD <b id="shopGoldCoins">0</b></span>
+        <span><img src="assets/black_coin.png" alt=""> BLACK <b id="shopBlackCoins">0</b></span>
+      </div>
+      <div class="shop-tabs">
+        <button class="shop-tab selected" data-shop-tab="cars">CARS</button>
+        <button class="shop-tab" data-shop-tab="characters">SKINS</button>
+        <button class="shop-tab unlockable-tab" data-shop-tab="unlockables" type="button">UNLOCKABLE</button>
+      </div>
+      <div id="unlockableFilters" class="unlockable-filters hidden" aria-label="Filter unlockables">
+        <button class="selected" data-unlockable-filter="open" type="button">OPEN <b>0</b></button>
+        <button data-unlockable-filter="ready" type="button">READY <b>0</b></button>
+        <button data-unlockable-filter="owned" type="button">OWNED <b>0</b></button>
+      </div>
+      <div id="carShop" class="shop-panel car-shop-panel"></div>
+      <div id="characterShop" class="shop-panel character-shop-panel hidden" aria-label="Character shop"></div>
+      <div id="unlockableShop" class="shop-panel character-shop-panel unlockable-shop-panel hidden" aria-label="Challenge skin shop"></div>
+      <div id="shopMessage" class="shop-message hidden" role="status"></div>
+      <div id="shopPreviewModal" class="shop-preview-modal hidden" role="dialog" aria-modal="true" aria-labelledby="shopPreviewTitle">
+        <div class="shop-preview-card">
+          <button id="shopPreviewClose" class="shop-preview-close" type="button" aria-label="Close">×</button>
+          <span id="shopPreviewBadge" class="shop-preview-badge">PREVIEW</span>
+          <div id="shopPreviewMedia" class="shop-preview-media"></div>
+          <h2 id="shopPreviewTitle">ITEM</h2>
+          <p id="shopPreviewMeta"></p>
+          <strong id="shopPreviewProgress" class="shop-preview-progress hidden"></strong>
+          <button id="shopPreviewAction" class="shop-preview-action" type="button">SELECT</button>
+        </div>
+      </div>
+      <div id="challengeModal" class="challenge-modal hidden" role="dialog" aria-modal="true" aria-labelledby="challengeTitle">
+        <div class="challenge-card">
+          <button id="challengeClose" class="challenge-close" type="button" aria-label="Close">×</button>
+          <span class="challenge-lock">🔒</span>
+          <h2 id="challengeTitle">CHALLENGE</h2>
+          <p id="challengeText"></p>
+          <strong id="challengeProgress"></strong>
+          <button id="challengeUnlock" class="challenge-unlock" type="button">LOCKED</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="opponentScreen" class="screen select-screen opponent-screen hidden">
+      <header><button class="back" data-back="characters">‹</button><div><h1>CHOOSE YOUR OPPONENT</h1><p>Select the rival whose level you want to enter</p></div></header>
+      <div class="opponent-gold-wallet"><span class="gold-coin-icon">$</span><span>YOUR GOLD</span><b id="opponentGoldCoins">0</b></div>
+      <div id="opponentCards" class="opponent-cards"></div>
+      <button id="opponentStart" class="primary">PLAY <span>→</span></button>
+      <div id="levelUnlockModal" class="level-unlock-modal hidden" role="dialog" aria-modal="true" aria-labelledby="levelUnlockTitle">
+        <div class="level-unlock-card">
+          <button id="levelUnlockClose" class="level-unlock-close" type="button" aria-label="Close">×</button>
+          <span class="level-unlock-kicker">LEVEL PROGRESS</span>
+          <h2 id="levelUnlockTitle">CHESTNUT</h2>
+          <div id="levelUnlockRequirements" class="level-unlock-requirements"></div>
+          <div id="levelPaymentArea" class="level-payment-area hidden">
+            <div class="level-price"><span class="gold-coin-icon">$</span><strong id="levelUnlockCost">1000</strong><small>COINS</small></div>
+            <button id="levelPaymentButton" class="level-payment-button" type="button">PAYMENT</button>
+            <p id="levelPaymentMessage" class="level-payment-message"></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen hidden">
+      <canvas id="gameCanvas" aria-label="Chrome Rush"></canvas>
+      <div class="hud">
+        <div class="currency-cluster">
+          <div class="score"><span class="gold-coin-icon">$</span><b id="stars">0</b></div>
+          <div class="black-wallet"><img src="assets/black_coin.png" alt="BLACK COINS"><b id="blackCoins">0</b></div>
+        </div>
+        <div class="distance"><small>DISTANCE</small><strong><b id="score">0</b><span>m</span></strong></div>
+        <button id="pauseButton" class="pause-button" type="button" aria-label="Pause game"><span></span><span></span></button>
+      </div>
+      <div id="tunTunCountHud" class="tun-tun-count-hud"><img src="assets/thrown_shoe.png" alt="Tun Tun"><b>0</b></div>
+      <div id="hennessyCountHud" class="hennessy-count-hud"><img src="assets/hennessy_bottle.png" alt="Hennessy"><b>0</b></div>
+      <div id="shieldHud" class="shield hidden">🛡️ SHIELD</div>
+      <div id="powerHud" class="power-hud hidden"></div>
+      <div id="hennessyHud" class="hennessy-hud hidden">HENNESSY ATTACK <b>10.0</b>s</div>
+      <div id="eventBanner" class="event-banner hidden"><strong></strong><span></span></div>
+      <div id="milestoneBanner" class="milestone-banner hidden"><small>MILESTONE</small><strong>100m</strong><span>KEEP CLIMBING</span></div>
+      <div id="dragHint" class="drag-hint">← &nbsp; DRAG &nbsp; →</div>
+
+      <div id="pauseScreen" class="pause-screen hidden" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+        <div class="pause-card">
+          <small>CHROME RUSH</small>
+          <h2 id="pauseTitle">PAUSED</h2>
+          <div class="pause-distance"><span>DISTANCE</span><strong><b id="pauseMeters">0</b>m</strong></div>
+          <button id="resumeButton" class="primary" type="button">PLAY</button>
+          <button id="pauseMenuButton" class="secondary" type="button">MENU</button>
+        </div>
+      </div>
+
+      <div id="gameOver" class="game-over hidden">
+        <h2>GAME OVER</h2>
+        <div id="bigDilfWon" class="big-dilf-won hidden"><img src="assets/opponent_big_dilf.png" alt=""><span>THE BIG DILF WON</span></div>
+        <div class="game-over-currencies">
+          <p aria-label="Coins collected"><span class="currency-label"><i class="gold-coin-icon" aria-hidden="true">$</i></span><b id="finalStars">0</b></p>
+          <p aria-label="Black Coins collected"><span class="currency-label"><img src="assets/black_coin.png" alt="" aria-hidden="true"></span><b id="finalBlackCoins">0</b></p>
+        </div>
+        <div class="game-over-scores">
+          <p><span>SCORE:</span><b id="finalScore">0</b></p>
+          <p><span>HIGHSCORE:</span><b id="finalHighscore">0</b></p>
+        </div>
+        <p id="resultMessage" class="hidden"></p>
+        <button id="restartButton" class="primary">RESTART</button>
+        <button id="menuButton" class="secondary">BACK TO MENU</button>
+      </div>
+    </section>
+  </main>
+  <div id="unlockToast" class="unlock-toast hidden" role="status" aria-live="polite">
+    <img id="unlockToastImage" alt="">
+    <div><small>CHALLENGE COMPLETE · READY TO CLAIM</small><strong id="unlockToastTitle">NEW UNLOCKABLE!</strong></div>
+  </div>
+  <audio id="backgroundMusic" src="assets/background_music.mp3" preload="none" loop></audio>
+  <audio id="bigDilfVoice" src="assets/big_dilf_voice.mp3" preload="none"></audio>
+  <audio id="tunTunSound" src="assets/pasitos_tun_tun.mp3" preload="none"></audio>
+  <audio id="bigDilfLossSound" src="assets/big_dilf_game_loss.mp3" preload="none"></audio>
+  <audio id="chestnutStartSound" src="assets/game_start_chestnut.mp3" preload="none"></audio>
+  <audio id="chestnutGameOverSound" src="assets/game_over_chestnut.mp3" preload="none"></audio>
+  <script src="game.js?v=20260709-skin-sheet-2"></script>
+</body>
+</html>

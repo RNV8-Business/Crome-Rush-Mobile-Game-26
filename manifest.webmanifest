@@ -1,0 +1,10 @@
+{
+  "name": "Chrome Rush",
+  "short_name": "Chrome Rush",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "portrait",
+  "background_color": "#101733",
+  "theme_color": "#101733",
+  "description": "Chrome Rush: collect rare cars and skins, face rivals and climb for the highscore."
+}

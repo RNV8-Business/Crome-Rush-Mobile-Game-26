@@ -1,0 +1,38 @@
+CHROME RUSH – IPHONE WEB VERSION
+
+START
+Mac: Double-click STARTEN.html.
+iPhone: Publish this complete folder, open its web address in Safari and choose
+Share > Add to Home Screen.
+
+CONTROLS
+The character jumps automatically. Drag horizontally to land on platforms.
+Falling below the screen ends the run. The top-left Home button returns to the
+menu and the Pause button opens the pause screen.
+
+PROGRESS
+- Gold Coins and BLACK COINS are saved locally in the browser.
+- Gold Coins buy regular skins; every purchasable skin costs 300 Gold Coins.
+- BLACK COINS buy the regular vehicle ladder in its fixed order.
+- Challenge rewards are claimed from SHOP > UNLOCKABLE.
+- COLLECTION contains every owned Skin and Car and allows loadout switching.
+- Skin Collection sorting: DATE or SCORE. Car Collection sorting: DATE or BOOST.
+- CHESTNUT has its own multi-part level unlock progress and payment.
+- Every rival stores a separate highscore; every skin and loadout also tracks its
+  best distance for challenge progress.
+
+CURRENT CONTENT
+- 50 Skins total: 10 regular and 40 challenge Skins.
+- 49 Cars total: 21 regular and 28 challenge Cars.
+- The 25 newly added challenge Cars use separate side-view Shop art and top-view
+  Game art. Their exact boosts and challenge requirements are shown in-game.
+- Celebrity challenge Skins use darker silver cards.
+- Claimed challenge rewards keep a green border and permanent check mark.
+- GOAT remains the final gold completion reward: collect every Car and every Skin.
+
+GAMEPLAY
+- BIG DILF and CHESTNUT use distinct level rules, speeds and rewards.
+- Cars, shoes, platforms, hazards, Hennessy effects, milestones, particles,
+  animations, pause and Game Over results are all active.
+- Progress, purchases, selections and highscores are stored with localStorage on
+  the current device and browser.
