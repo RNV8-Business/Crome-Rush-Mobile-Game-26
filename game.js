@@ -5,6 +5,224 @@
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const random = (min, max) => min + Math.random() * (max - min);
   const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+  const savedLanguage = (() => {
+    try { return localStorage.getItem('chromeRush.language') || 'de'; }
+    catch { return 'de'; }
+  })();
+  let currentLanguage = savedLanguage === 'en' ? 'en' : 'de';
+  const i18n = {
+    de: {
+      active: 'AKTIV',
+      altitudeTier: 'HÖHENSTUFE',
+      backToMenu: 'ZURÜCK ZUM MENÜ',
+      bigDilfWon: 'BIG DILF HAT GEWONNEN',
+      blackCoins: 'SCHWARZE COINS',
+      blackWallet: 'SCHWARZ',
+      boost: 'BOOST',
+      buyCar: 'CAR KAUFEN',
+      buySkin: 'SKIN KAUFEN',
+      challengeComplete: 'CHALLENGE GESCHAFFT',
+      challengeLocked: 'CHALLENGE GESPERRT',
+      change: 'ÄNDERN',
+      chooseOpponent: 'WÄHLE DEINEN GEGNER',
+      claimGoat: 'GOAT ABHOLEN',
+      collection: 'SAMMLUNG',
+      collectionAriaCars: 'Eigene Car-Sammlung',
+      collectionAriaSkins: 'Eigene Skin-Sammlung',
+      collectionSubtitle: 'Deine freigeschalteten SKINS und Bestleistungen',
+      completed: 'GESCHAFFT',
+      currentCar: 'AKTUELLES CAR',
+      date: 'DATUM',
+      distance: 'DISTANZ',
+      dodgeOrLose: 'AUSWEICHEN ODER VERLIEREN',
+      doubleJump: 'DOPPELSPRUNG',
+      doubleJumpHeight: '2x HÖHE FÜR 5 SEKUNDEN',
+      effectLevel: 'EFFEKTSTUFE',
+      enterName: 'GIB DEINEN NAMEN EIN',
+      finalReward: 'FINALER PREIS',
+      fireHotDogs: 'FEUER-HOTDOGS!',
+      free: 'KOSTENLOS',
+      gameOver: 'GAME OVER',
+      hennessyAttack: 'HENNESSY-ANGRIFF',
+      hennessyHit: 'HENNESSY-TREFFER!',
+      hotDogAttack: 'HOTDOG-ANGRIFF',
+      hotDogHit: 'HOTDOG-TREFFER!',
+      keepClimbing: 'WEITER KLETTERN',
+      leaderboardSubtitle: 'Highscores, SKINS und CARS von allen',
+      levelOpen: 'LEVEL OFFEN',
+      levelProgress: 'LEVEL-FORTSCHRITT',
+      loading: 'LÄDT...',
+      locked: 'GESPERRT',
+      menuTitle: 'MENU',
+      milestone: 'MEILENSTEIN',
+      moreBlackCoins: 'MEHR SCHWARZE COINS',
+      moreGoldCoins: 'MEHR GOLD COINS',
+      newHighscore: 'NEUER',
+      noScoresYet: 'NOCH KEINE SCORES',
+      nothingHere: 'NOTHING HERE',
+      offline: 'OFFLINE · SPÄTER ERNEUT VERSUCHEN',
+      openProgress: 'FORTSCHRITT ANSEHEN',
+      paidLevelOpen: 'BEZAHLT · LEVEL OFFEN',
+      payment: 'BEZAHLEN',
+      player: 'SPIELER',
+      playersAndCars: 'SPIELER & CARS',
+      preview: 'VORSCHAU',
+      readyToClaim: 'BEREIT ZUM ABHOLEN',
+      restart: 'NEUSTART',
+      score: 'PUNKTE:',
+      selectCar: 'CAR AUSWÄHLEN',
+      selectSkin: 'SKIN AUSWÄHLEN',
+      selectedInShop: '✓ IM SHOP AUSGEWÄHLT',
+      setName: 'NAMEN SETZEN',
+      shopSubtitle: 'Schalte Spieler frei und verbessere dein Fahrzeug',
+      shopCurrency: 'SHOP-WÄHRUNG',
+      skin: 'SKIN',
+      startGame: 'SPIEL STARTEN',
+      stayOnPlatforms: 'BLEIB AUF DEN PLATTFORMEN',
+      tapAgainMusic: 'Zum erneuten Musiktest tippen',
+      unlockable: 'FREISCHALTBAR',
+      unlockableCar: 'FREISCHALTBARES CAR',
+      unlockableSkin: 'FREISCHALTBARER SKIN',
+      unlocked: 'FREIGESCHALTET',
+      unlockGoatMessage: 'GOAT FREIGESCHALTET · CHROME RUSH GESCHAFFT!',
+      unlockMore: 'MEHR FREISCHALTEN',
+      unlockSkin: 'SKIN FREISCHALTEN',
+      unlockVehicle: 'FAHRZEUG FREISCHALTEN',
+      youFell: 'Du bist gefallen. Noch ein Versuch!',
+      youHitFlames: 'Du hast die Flammen berührt!',
+      youHitObstacle: 'Du hast ein Hindernis getroffen!',
+      yourGold: 'DEIN GOLD'
+    },
+    en: {
+      active: 'ACTIVE',
+      altitudeTier: 'ALTITUDE TIER',
+      backToMenu: 'BACK TO MENU',
+      bigDilfWon: 'THE BIG DILF WON',
+      blackCoins: 'BLACK COINS',
+      blackWallet: 'BLACK',
+      boost: 'BOOST',
+      buyCar: 'BUY CAR',
+      buySkin: 'BUY SKIN',
+      challengeComplete: 'CHALLENGE COMPLETE',
+      challengeLocked: 'CHALLENGE LOCKED',
+      change: 'CHANGE',
+      chooseOpponent: 'CHOOSE YOUR OPPONENT',
+      claimGoat: 'CLAIM GOAT',
+      collection: 'COLLECTION',
+      collectionAriaCars: 'Owned vehicle collection',
+      collectionAriaSkins: 'Owned skin collection',
+      collectionSubtitle: 'Your unlocked SKINS and personal bests',
+      completed: 'COMPLETED',
+      currentCar: 'CURRENT CAR',
+      date: 'DATE',
+      distance: 'DISTANCE',
+      dodgeOrLose: 'DODGE OR LOSE',
+      doubleJump: 'DOUBLE JUMP',
+      doubleJumpHeight: '2x HEIGHT FOR 5 SECONDS',
+      effectLevel: 'EFFECT LEVEL',
+      enterName: 'ENTER YOUR NAME',
+      finalReward: 'FINAL REWARD',
+      fireHotDogs: 'FIRE HOT DOGS!',
+      free: 'FREE',
+      gameOver: 'GAME OVER',
+      hennessyAttack: 'HENNESSY ATTACK',
+      hennessyHit: 'HENNESSY HIT!',
+      hotDogAttack: 'HOT DOG ATTACK',
+      hotDogHit: 'HOT DOG HIT!',
+      keepClimbing: 'KEEP CLIMBING',
+      leaderboardSubtitle: 'Highscores, SKINS and CARS from everyone',
+      levelOpen: 'LEVEL OPEN',
+      levelProgress: 'LEVEL PROGRESS',
+      loading: 'LOADING...',
+      locked: 'LOCKED',
+      menuTitle: 'MENU',
+      milestone: 'MILESTONE',
+      moreBlackCoins: 'MORE BLACK COINS',
+      moreGoldCoins: 'MORE GOLD COINS',
+      newHighscore: 'NEW',
+      noScoresYet: 'NO SCORES YET',
+      nothingHere: 'NOTHING HERE',
+      offline: 'OFFLINE · TRY AGAIN LATER',
+      openProgress: 'VIEW PROGRESS',
+      paidLevelOpen: 'PAID · LEVEL OPEN',
+      payment: 'PAYMENT',
+      player: 'PLAYER',
+      playersAndCars: 'PLAYERS & CARS',
+      preview: 'PREVIEW',
+      readyToClaim: 'READY TO CLAIM',
+      restart: 'RESTART',
+      score: 'SCORE:',
+      selectCar: 'SELECT CAR',
+      selectSkin: 'SELECT SKIN',
+      selectedInShop: '✓ SELECTED IN SHOP',
+      setName: 'SET NAME',
+      shopSubtitle: 'Unlock characters and upgrade your ride',
+      shopCurrency: 'SHOP CURRENCY',
+      skin: 'SKIN',
+      startGame: 'PLAY THE GAME',
+      stayOnPlatforms: 'STAY ON THE PLATFORMS',
+      tapAgainMusic: 'Tap again to preview music',
+      unlockable: 'UNLOCKABLE',
+      unlockableCar: 'UNLOCKABLE CAR',
+      unlockableSkin: 'UNLOCKABLE SKIN',
+      unlocked: 'UNLOCKED',
+      unlockGoatMessage: 'GOAT UNLOCKED · CHROME RUSH COMPLETE!',
+      unlockMore: 'UNLOCK MORE',
+      unlockSkin: 'UNLOCK SKIN',
+      unlockVehicle: 'UNLOCK VEHICLE',
+      youFell: 'You fell — one more climb!',
+      youHitFlames: 'You hit the flames!',
+      youHitObstacle: 'You hit an obstacle!',
+      yourGold: 'YOUR GOLD'
+    }
+  };
+  const t = key => i18n[currentLanguage]?.[key] || i18n.en[key] || key;
+  const isGerman = () => currentLanguage === 'de';
+  function translateChallengeText(text = '') {
+    if (!isGerman() || !text) return text;
+    let output = String(text)
+      .replace(/Finish a Run/gi, 'Beende einen Run')
+      .replace(/Finish a run/gi, 'Beende einen Run')
+      .replace(/Reach exactly/gi, 'Erreiche genau')
+      .replace(/Reach/gi, 'Erreiche')
+      .replace(/Collect every single/gi, 'Sammle jeden')
+      .replace(/Collect every/gi, 'Sammle jedes')
+      .replace(/Collect/gi, 'Sammle')
+      .replace(/Unlock/gi, 'Schalte frei')
+      .replace(/using any/gi, 'mit einem beliebigen')
+      .replace(/using the/gi, 'mit dem')
+      .replace(/using/gi, 'mit')
+      .replace(/with any Skin/gi, 'mit einem beliebigen SKIN')
+      .replace(/with exactly/gi, 'mit genau')
+      .replace(/with/gi, 'mit')
+      .replace(/against/gi, 'gegen')
+      .replace(/and/gi, 'und')
+      .replace(/in one Run/gi, 'in einem Run')
+      .replace(/Bottles/gi, 'Flaschen')
+      .replace(/Shoes/gi, 'Schuhe')
+      .replace(/Gold Coins/gi, 'Gold Coins')
+      .replace(/Black Coins/gi, 'Schwarze Coins')
+      .replace(/Coins/gi, 'Coins')
+      .replace(/Cars/gi, 'CARS')
+      .replace(/Skins/gi, 'SKINS')
+      .replace(/Car/gi, 'CAR')
+      .replace(/Skin/gi, 'SKIN')
+      .replace(/Level/gi, 'Level');
+    return output;
+  }
+  function translateProgressText(text = '') {
+    if (!isGerman() || !text) return text;
+    return String(text)
+      .replace(/FINISH/g, 'ABSCHLUSS')
+      .replace(/EXACT/g, 'GENAU')
+      .replace(/LOCKED/g, 'GESPERRT')
+      .replace(/UNLOCKED/g, 'FREI')
+      .replace(/BOTTLES/g, 'FLASCHEN')
+      .replace(/SHOES/g, 'SCHUHE')
+      .replace(/BLACK COINS/g, 'SCHWARZE COINS')
+      .replace(/COINS/g, 'COINS');
+  }
+  const challengeState = (complete, text, progress) => ({ complete, text: translateChallengeText(text), progress: translateProgressText(progress) });
 
   const characters = [
     { name: 'GEORGE', image: 'assets/character_1.png', legCut: 790, cost: 0 },
@@ -446,10 +664,74 @@
     try { localStorage.setItem('chromeRush.leaderboard.playerName', sanitizePlayerName(name)); } catch { /* Private mode. */ }
   }
 
+  function applyLanguage() {
+    document.documentElement.lang = currentLanguage;
+    document.querySelectorAll('[data-i18n]').forEach(node => {
+      const key = node.dataset.i18n;
+      if (key) node.textContent = t(key);
+    });
+    document.querySelectorAll('[data-language]').forEach(button => {
+      button.classList.toggle('selected', button.dataset.language === currentLanguage);
+    });
+    const musicStart = $('#musicStart');
+    if (musicStart) {
+      musicStart.setAttribute('aria-label', musicWasStarted ? (isGerman() ? 'Musikvorschau läuft' : 'Music preview is playing') : t('tapAgainMusic'));
+      musicStart.title = isGerman() ? 'Für Musik tippen' : 'Tap to start music';
+    }
+    const distanceLabel = document.querySelector('.distance small');
+    if (distanceLabel) distanceLabel.textContent = t('distance');
+    const pauseDistanceLabel = document.querySelector('.pause-distance span');
+    if (pauseDistanceLabel) pauseDistanceLabel.textContent = t('distance');
+    const milestoneSmall = document.querySelector('#milestoneBanner small');
+    const milestoneSpan = document.querySelector('#milestoneBanner span');
+    if (milestoneSmall) milestoneSmall.textContent = t('milestone');
+    if (milestoneSpan) milestoneSpan.textContent = t('keepClimbing');
+    const pauseTitle = $('#pauseTitle');
+    if (pauseTitle) pauseTitle.textContent = isGerman() ? 'PAUSE' : 'PAUSED';
+    const resumeButton = $('#resumeButton');
+    if (resumeButton) resumeButton.textContent = 'PLAY';
+    const pauseMenuButton = $('#pauseMenuButton');
+    if (pauseMenuButton) pauseMenuButton.textContent = isGerman() ? 'MENÜ' : 'MENU';
+    const restartButton = $('#restartButton');
+    if (restartButton) restartButton.textContent = t('restart');
+    const menuButton = $('#menuButton');
+    if (menuButton) menuButton.textContent = t('backToMenu');
+    const gameOverTitle = gameOverPanel?.querySelector('h2');
+    if (gameOverTitle) gameOverTitle.textContent = t('gameOver');
+    const finalScoreLabel = document.querySelector('.game-over-scores p:first-child span');
+    if (finalScoreLabel) finalScoreLabel.textContent = t('score');
+    const bigDilfWonLabel = $('#bigDilfWon span');
+    if (bigDilfWonLabel) bigDilfWonLabel.textContent = t('bigDilfWon');
+    const unlockToastSmall = document.querySelector('#unlockToast small');
+    const unlockToastTitle = $('#unlockToastTitle');
+    if (unlockToastSmall) unlockToastSmall.textContent = `${t('challengeComplete')} · ${t('readyToClaim')}`;
+    if (unlockToastTitle && unlockToastTitle.textContent.includes('UNLOCKABLE')) unlockToastTitle.textContent = isGerman() ? 'NEU FREISCHALTBAR!' : 'NEW UNLOCKABLE!';
+    const filterLabels = { open: isGerman() ? 'OFFEN' : 'OPEN', ready: isGerman() ? 'BEREIT' : 'READY', owned: isGerman() ? 'BESITZ' : 'OWNED' };
+    document.querySelectorAll('[data-unlockable-filter]').forEach(button => {
+      const label = filterLabels[button.dataset.unlockableFilter] || button.dataset.unlockableFilter;
+      const count = button.querySelector('b')?.textContent || '0';
+      button.innerHTML = `${label} <b>${count}</b>`;
+    });
+    if (!screens.collection?.classList.contains('hidden')) renderCollection();
+    if (!screens.shop?.classList.contains('hidden')) updateShop();
+    if (!screens.opponents?.classList.contains('hidden')) updateOpponentHighscores();
+    if (!screens.leaderboard?.classList.contains('hidden')) {
+      updateLeaderboardProfile();
+      loadLeaderboard(activeLeaderboardLevel);
+    }
+    updateCharacterLocks();
+  }
+
+  function setLanguage(language) {
+    currentLanguage = language === 'en' ? 'en' : 'de';
+    try { localStorage.setItem('chromeRush.language', currentLanguage); } catch { /* Private mode. */ }
+    applyLanguage();
+  }
+
   function askForLeaderboardName(force = false) {
     const current = getLeaderboardPlayerName();
     if (current && !force) return current;
-    const typed = prompt('ENTER YOUR NAME', current || '');
+    const typed = prompt(t('enterName'), current || '');
     const name = sanitizePlayerName(typed) || current || `PLAYER ${String(getLeaderboardPlayerId()).slice(-4).toUpperCase()}`;
     saveLeaderboardPlayerName(name);
     updateLeaderboardProfile();
@@ -458,7 +740,7 @@
 
   function updateLeaderboardProfile() {
     const node = $('#leaderboardPlayerName');
-    if (node) node.textContent = getLeaderboardPlayerName() || 'SET NAME';
+    if (node) node.textContent = getLeaderboardPlayerName() || t('setName');
   }
 
   function getLeaderboardPayload(levelKey) {
@@ -504,17 +786,17 @@
     const time = new Date(value).getTime();
     if (!time) return '';
     const minutes = Math.max(1, Math.round((Date.now() - time) / 60000));
-    if (minutes < 60) return `${minutes}M AGO`;
+    if (minutes < 60) return isGerman() ? `VOR ${minutes} MIN` : `${minutes}M AGO`;
     const hours = Math.round(minutes / 60);
-    if (hours < 24) return `${hours}H AGO`;
-    return `${Math.round(hours / 24)}D AGO`;
+    if (hours < 24) return isGerman() ? `VOR ${hours} STD` : `${hours}H AGO`;
+    return isGerman() ? `VOR ${Math.round(hours / 24)} T` : `${Math.round(hours / 24)}D AGO`;
   }
 
   function renderLeaderboardRows(rows = []) {
     const list = $('#leaderboardList');
     if (!list) return;
     if (!rows.length) {
-      list.innerHTML = '<div class="leaderboard-empty"><strong>NO SCORES YET</strong><span>Play a run and come back.</span></div>';
+      list.innerHTML = `<div class="leaderboard-empty"><strong>${t('noScoresYet')}</strong><span>${isGerman() ? 'Spiel einen Run und komm zurück.' : 'Play a run and come back.'}</span></div>`;
       return;
     }
     const ownId = getLeaderboardPlayerId();
@@ -531,7 +813,7 @@
     if (leaderboardIsLoading) return;
     leaderboardIsLoading = true;
     const status = $('#leaderboardStatus');
-    if (status) status.textContent = 'LOADING...';
+    if (status) status.textContent = t('loading');
     try {
       const url = `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc&limit=25`;
       const response = await fetch(url, { headers: getLeaderboardHeaders() });
@@ -541,7 +823,7 @@
       if (status) status.textContent = `${leaderboardLevels[levelKey]?.label || 'LEVEL'} · TOP 25`;
     } catch {
       renderLeaderboardRows([]);
-      if (status) status.textContent = 'OFFLINE · TRY AGAIN LATER';
+      if (status) status.textContent = t('offline');
     } finally {
       leaderboardIsLoading = false;
     }
@@ -772,7 +1054,6 @@
     if (runTunTuns < 20 || hennessyCount < 20) return;
     try { localStorage.setItem('mand.shoesBottlesRun.20', '1'); } catch { /* Private mode. */ }
   }
-  const challengeState = (complete, text, progress) => ({ complete, text, progress });
   const distanceState = (value, target, text, suffix = '') => challengeState(value >= target, text, `${Math.min(value, target)} / ${target}m${suffix ? ` · ${suffix}` : ''}`);
   const collectionState = (skins, cars, text) => {
     const items = [...skins.map(name => [name, ownsSkin(name)]), ...cars.map(type => [carSpecs[type]?.name || type, ownsCar(type)])];
@@ -963,7 +1244,7 @@
     clearTimeout(unlockToastTimer);
     $('#unlockToastImage').src = unlockable.image;
     $('#unlockToastImage').alt = unlockable.name;
-    $('#unlockToastTitle').textContent = `${unlockable.name} UNLOCKED!`;
+    $('#unlockToastTitle').textContent = `${unlockable.name} ${t('unlocked')}!`;
     toast.classList.remove('hidden', 'show');
     void toast.offsetWidth;
     toast.classList.add('show');
@@ -1025,14 +1306,13 @@
   }
 
   const opponentUnlockRules = {
-    1: { cars: 15, skins: 15, distance: 500, differentSkins: 10, cost: 2500 }
+    1: { cars: 15, skins: 15, distance: 500, differentSkins: 3, cost: 2000 }
   };
   let viewedOpponentUnlock = 1;
 
   function hasPaidForOpponent(index) {
     if (index === 0) return true;
-    if (index === 1) return true;
-    try { return localStorage.getItem(`mand.opponentPaid.${opponents[index].id}`) === '1'; }
+    try { return localStorage.getItem(`mand.opponentPaid.v2.${opponents[index].id}`) === '1'; }
     catch { return false; }
   }
 
@@ -1087,10 +1367,10 @@
     const state = getOpponentUnlockState(index);
     $('#levelUnlockTitle').textContent = opponent.name;
     $('#levelUnlockRequirements').innerHTML = [
-      requirementRow('CARS', `${Math.min(state.cars, state.targetCars)} / ${state.targetCars}`, state.carsReady),
-      requirementRow('SKINS', `${Math.min(state.skins, state.targetSkins)} / ${state.targetSkins}`, state.skinsReady),
-      requirementRow(`CHALLENGE · REACH ${state.distance}m`, `${Math.min(state.qualifyingSkins, state.differentSkins)} / ${state.differentSkins} DIFFERENT SKINS`, state.challengeReady),
-      requirementRow('COST', `${state.cost} COINS`, state.paid)
+      requirementRow(isGerman() ? 'SAMMLE CARS' : 'COLLECT CARS', `${Math.min(state.cars, state.targetCars)} / ${state.targetCars}`, state.carsReady),
+      requirementRow(isGerman() ? 'SAMMLE SKINS' : 'COLLECT SKINS', `${Math.min(state.skins, state.targetSkins)} / ${state.targetSkins}`, state.skinsReady),
+      requirementRow(isGerman() ? `ERREICHE ${state.distance}m MIT VERSCHIEDENEN SKINS` : `REACH ${state.distance}m WITH DIFFERENT SKINS`, isGerman() ? `${Math.min(state.qualifyingSkins, state.differentSkins)} / ${state.differentSkins} SKINS` : `${Math.min(state.qualifyingSkins, state.differentSkins)} / ${state.differentSkins} SKINS`, state.challengeReady),
+      requirementRow(isGerman() ? 'KOSTEN' : 'COST', `${state.cost} COINS`, state.paid)
     ].join('');
     const paymentArea = $('#levelPaymentArea');
     $('#levelUnlockCost').textContent = state.cost;
@@ -1099,7 +1379,7 @@
     if (state.gameplayReady) {
       const button = $('#levelPaymentButton');
       button.disabled = state.paid;
-      button.textContent = state.paid ? 'PAID · LEVEL OPEN' : 'PAYMENT';
+      button.textContent = state.paid ? t('paidLevelOpen') : t('payment');
       paymentArea.classList.toggle('paid', state.paid);
     }
   }
@@ -1114,11 +1394,11 @@
     const state = getOpponentUnlockState(index);
     if (!state.gameplayReady || state.paid) return;
     if (!spendGoldCoins(state.cost)) {
-      $('#levelPaymentMessage').textContent = `YOU NEED ${state.cost - getGoldCoins()} MORE COINS`;
+      $('#levelPaymentMessage').textContent = isGerman() ? `DU BRAUCHST ${state.cost - getGoldCoins()} MEHR COINS` : `YOU NEED ${state.cost - getGoldCoins()} MORE COINS`;
       pop($('#levelPaymentArea'), 'shake');
       return;
     }
-    try { localStorage.setItem(`mand.opponentPaid.${opponents[index].id}`, '1'); } catch { return; }
+    try { localStorage.setItem(`mand.opponentPaid.v2.${opponents[index].id}`, '1'); } catch { return; }
     selectedOpponent = index;
     updateOpponentHighscores();
     updateMenuStats();
@@ -1243,7 +1523,7 @@
       button.className = `character-card${index === 0 ? ' selected' : ''}`;
       button.dataset.characterIndex = index;
       button.setAttribute('aria-label', character.name);
-      button.innerHTML = `<canvas class="avatar-preview" width="220" height="330"></canvas><span class="level-city">PLAYER ${index + 1}</span><strong>${character.name}</strong><span class="unlock-text"></span>`;
+      button.innerHTML = `<canvas class="avatar-preview" width="220" height="330"></canvas><span class="level-city">${t('player')} ${index + 1}</span><strong>${character.name}</strong><span class="unlock-text"></span>`;
       previewCanvases.push(button.querySelector('.avatar-preview'));
       button.addEventListener('click', () => {
         pop(button);
@@ -1262,7 +1542,7 @@
     const currentCarButton = document.createElement('button');
     currentCarButton.id = 'currentCarCard';
     currentCarButton.className = 'current-car-card';
-    currentCarButton.innerHTML = `<span>CURRENT CAR</span><img id="currentCarImage" alt=""><strong id="currentCarName"></strong>`;
+    currentCarButton.innerHTML = `<span>${t('currentCar')}</span><img id="currentCarImage" alt=""><strong id="currentCarName"></strong>`;
     currentCarButton.addEventListener('click', () => {
       pop(currentCarButton);
       collectionType = 'cars';
@@ -1275,10 +1555,11 @@
     opponents.forEach((opponent, index) => {
       const button = document.createElement('button');
       button.className = `opponent-card opponent-${index % 2 === 0 ? 'left' : 'right'} opponent-duo-card${index === 0 ? ' selected' : ''}`;
+      button.dataset.opponentIndex = String(index);
       button.style.setProperty('--opponent-accent', opponent.accent);
       button.style.setProperty('--opponent-soft', opponent.soft);
       button.setAttribute('aria-label', opponent.name);
-      button.innerHTML = `${managedImageMarkup(opponent.card, opponent.name)}<span class="opponent-copy"><strong>${opponent.name}</strong><span class="opponent-highscore">HIGHSCORE <b>${getHighscore(index)}</b>m</span><span class="opponent-lock-status"></span></span><span class="check">✓</span>`;
+      button.innerHTML = `${managedImageMarkup(opponent.card, opponent.name)}<span class="opponent-difficulty">${index === 0 ? 'EASY' : 'HARD'}</span><span class="opponent-copy"><strong>${opponent.name}</strong><span class="opponent-highscore">HIGHSCORE <b>${getHighscore(index)}</b>m</span><span class="opponent-lock-status"></span></span><span class="check">✓</span>`;
       button.addEventListener('click', () => {
         if (!isOpponentUnlocked(index)) {
           pop(button);
@@ -1309,8 +1590,8 @@
       }
       card.style.order = 0;
       card.querySelector('strong').textContent = characters[index].name;
-      card.querySelector('.level-city').textContent = 'ACTIVE PLAYER';
-      card.querySelector('.unlock-text').textContent = '✓ SELECTED IN SHOP';
+      card.querySelector('.level-city').textContent = isGerman() ? 'AKTIVER SPIELER' : 'ACTIVE PLAYER';
+      card.querySelector('.unlock-text').textContent = t('selectedInShop');
     });
     const unlockMoreCard = $('#unlockMoreCard');
     if (unlockMoreCard) {
@@ -1335,7 +1616,9 @@
     const car = carSpecs[type];
     const image = $('#currentCarImage');
     const name = $('#currentCarName');
+    const label = $('#currentCarCard > span');
     if (!car || !image || !name) return;
+    if (label) label.textContent = t('currentCar');
     AssetManager.hydrateImage(image, car.shopAsset, 'high');
     image.alt = car.name;
     name.textContent = car.name;
@@ -1532,8 +1815,8 @@
     sort.classList.remove('hidden');
     const dateButton = sort.querySelector('[data-collection-sort="date"]');
     const scoreButton = sort.querySelector('[data-collection-sort="score"]');
-    dateButton.textContent = 'DATE';
-    scoreButton.textContent = collectionType === 'cars' ? 'BOOST' : 'SCORE';
+    dateButton.textContent = t('date');
+    scoreButton.textContent = collectionType === 'cars' ? 'BOOST' : (isGerman() ? 'PUNKTE' : 'SCORE');
     document.querySelectorAll('[data-collection-sort]').forEach(button => button.classList.toggle('selected', button.dataset.collectionSort === collectionSort));
     if (collectionType === 'cars') {
       const dateOrder = getCarCollectionOrder();
@@ -1543,7 +1826,7 @@
       const selectedCar = getSelectedCar();
       $('#collectionCount').textContent = `${collection.length} / ${carOrder.length}`;
       $('#collectionSummaryLabel').textContent = 'CARS';
-      grid.setAttribute('aria-label', 'Owned vehicle collection');
+      grid.setAttribute('aria-label', t('collectionAriaCars'));
       grid.innerHTML = collection.map((type, position) => {
         const car = carSpecs[type];
         const active = selectedCar === type;
@@ -1552,7 +1835,7 @@
           <span class="collection-number">${String(position + 1).padStart(2, '0')}</span>
           <div class="car-image-stage">${managedImageMarkup(car.shopAsset, car.name)}</div>
           <div class="shop-item-copy"><strong class="car-name" style="--car-name-size:${nameSize}px">${car.name}</strong><small>${car.boost}X BOOST</small>
-          <button class="shop-action car-price-action${active ? ' active' : ''}" data-collection-car="${type}">${active ? 'ACTIVE' : 'SELECT'}</button></div>
+          <button class="shop-action car-price-action${active ? ' active' : ''}" data-collection-car="${type}">${active ? t('active') : t('selectCar')}</button></div>
         </article>`;
       }).join('');
       preparePanelAssets(grid, 12);
@@ -1565,18 +1848,18 @@
       : dateOrder;
     $('#collectionCount').textContent = `${collection.length} / ${characters.length}`;
     $('#collectionSummaryLabel').textContent = 'SKINS';
-    grid.setAttribute('aria-label', 'Owned skin collection');
+    grid.setAttribute('aria-label', t('collectionAriaSkins'));
     grid.innerHTML = collection.map((index, position) => {
       const character = characters[index];
       const active = selectedCharacter === index;
       const bestScore = getCharacterBestHighscore(index);
       return `<article class="shop-item character-shop-item collection-skin-item${active ? ' active-character' : ''}">
         <span class="collection-number">${String(position + 1).padStart(2, '0')}</span>
-        <span class="collection-best"><small>BEST</small><strong>${bestScore}m</strong></span>
+        <span class="collection-best"><small>${isGerman() ? 'BESTE' : 'BEST'}</small><strong>${bestScore}m</strong></span>
         <span class="shop-character-aura" aria-hidden="true"></span>
         <canvas class="shop-character-canvas collection-skin-canvas" data-character-index="${index}" width="380" height="410" aria-label="${character.name}"></canvas>
         <div class="shop-item-copy skin-item-copy"><strong>${character.name}</strong>
-        <button class="shop-action skin-action${active ? ' active' : ''}" data-collection-character="${index}">${active ? 'ACTIVE' : 'SELECT'}</button></div>
+        <button class="shop-action skin-action${active ? ' active' : ''}" data-collection-character="${index}">${active ? t('active') : t('selectSkin')}</button></div>
       </article>`;
     }).join('');
     preparePanelAssets(grid, 12);
@@ -1602,9 +1885,9 @@
       const cost = getCharacterShopCost(index);
       const affordable = !unlocked && goldCoins >= cost;
       const action = active
-        ? 'ACTIVE'
+        ? t('active')
         : unlocked
-          ? 'SELECT'
+          ? t('selectSkin')
           : `<span>${cost}</span><i class="mini-gold-coin" aria-label="gold coins">$</i>`;
       return `<article class="shop-item character-shop-item${unlocked ? '' : ' locked'}${active ? ' active-character' : ''}" data-shop-skin="${index}">
         <span class="shop-character-aura" aria-hidden="true"></span>
@@ -1642,7 +1925,7 @@
           <span class="car-tier">${String(carOrder.indexOf(type) + 1).padStart(2, '0')}</span>
           <div class="car-image-stage">${managedImageMarkup(car.shopAsset, car.name)}</div>
           <div class="shop-item-copy skin-item-copy"><strong class="car-name" style="--car-name-size:${nameSize}px">${car.name}</strong>
-          <button class="shop-action skin-action challenge-action${active ? ' active' : challenge.complete ? ' ready-to-claim' : ''}" ${owned ? 'disabled' : `data-challenge-car="${type}"`}>${active ? 'ACTIVE' : owned ? 'UNLOCKED' : challenge.complete ? '🔓' : '🔒'}</button></div>
+          <button class="shop-action skin-action challenge-action${active ? ' active' : challenge.complete ? ' ready-to-claim' : ''}" ${owned ? 'disabled' : `data-challenge-car="${type}"`}>${active ? t('active') : owned ? t('unlocked') : challenge.complete ? '🔓' : '🔒'}</button></div>
         </article>`;
       }
       if (entry === 'goat') {
@@ -1652,7 +1935,7 @@
           <span class="goat-glow" aria-hidden="true"></span>
           <div class="goat-image-stage">${managedImageMarkup(goatReward.image, 'GOAT')}</div>
           <div class="shop-item-copy skin-item-copy"><strong>GOAT</strong>
-          <button class="shop-action skin-action challenge-action${challenge.complete && !unlocked ? ' ready-to-claim' : ''}" ${unlocked ? 'disabled' : 'data-goat-challenge="goat"'}>${unlocked ? 'COMPLETED' : challenge.complete ? '🔓' : '🔒'}</button></div>
+          <button class="shop-action skin-action challenge-action${challenge.complete && !unlocked ? ' ready-to-claim' : ''}" ${unlocked ? 'disabled' : 'data-goat-challenge="goat"'}>${unlocked ? t('completed') : challenge.complete ? '🔓' : '🔒'}</button></div>
         </article>`;
       }
       const index = characters.findIndex(character => character.name === entry);
@@ -1661,7 +1944,7 @@
       const unlocked = isCharacterUnlocked(index);
       const active = selectedCharacter === index;
       const challenge = getChallengeState(index);
-      const action = active ? 'ACTIVE' : unlocked ? 'SELECT' : challenge.complete ? '🔓' : '🔒';
+      const action = active ? t('active') : unlocked ? t('selectSkin') : challenge.complete ? '🔓' : '🔒';
       return `<article class="shop-item character-shop-item unlockable-shop-item${character.celebrity ? ' celebrity-unlockable' : ''}${unlocked ? ' challenge-complete' : ' locked'}${challenge.complete && !unlocked ? ' challenge-ready' : ''}${active ? ' active-character' : ''}" data-unlockable-card="${index}">
         ${unlocked ? '<span class="claimed-check" aria-label="claimed">✓</span>' : ''}
         <span class="shop-character-aura" aria-hidden="true"></span>
@@ -1669,7 +1952,7 @@
         <div class="shop-item-copy skin-item-copy"><strong>${character.name}</strong>
         <button class="shop-action skin-action challenge-action${active ? ' active' : challenge.complete ? ' ready-to-claim' : ''}" ${unlocked ? `data-character-action="${index}"` : `data-challenge-index="${index}"`}>${action}</button></div>
       </article>`;
-    }).join('') : `<div class="unlockable-empty"><strong>NOTHING HERE</strong><span>Unlock a new Skin or Car first</span></div>`;
+    }).join('') : `<div class="unlockable-empty"><strong>${t('nothingHere')}</strong><span>${isGerman() ? 'Schalte zuerst einen neuen SKIN oder ein neues CAR frei' : 'Unlock a new Skin or Car first'}</span></div>`;
 
     const ownedPurchasableCars = purchasableCarOrder.filter(type => ownedCars.includes(type));
     const nextCarIndex = ownedPurchasableCars.length;
@@ -1680,11 +1963,11 @@
       const isNext = index === nextCarIndex;
       const affordable = !owned && blackCoins >= car.cost;
       const label = active
-        ? 'ACTIVE'
+        ? t('active')
         : owned
-          ? 'OWNED'
+          ? (isGerman() ? 'BESITZ' : 'OWNED')
           : car.cost === 0
-              ? 'UNLOCK'
+              ? (isGerman() ? 'FREI' : 'UNLOCK')
               : `<span>${car.cost}</span><img class="mini-black-coin" src="assets/black_coin.png" alt="BLACK COINS">`;
       const nameSize = car.name.length > 21 ? 9 : car.name.length > 17 ? 10 : 12;
       const imageMarkup = `<div class="car-image-stage">${managedImageMarkup(car.shopAsset, car.name)}</div>`;
@@ -1697,8 +1980,8 @@
     if (purchasableCarOrder.length % 2 === 1) {
       carShopItems.push(`<button class="shop-item car-shop-item unlock-more-car-card" type="button" data-open-unlockables>
         <span class="unlock-more-plus">+</span>
-        <div class="shop-item-copy"><strong>UNLOCK MORE</strong><small>CHALLENGE CARS</small>
-        <span class="shop-action">OPEN</span></div>
+        <div class="shop-item-copy"><strong>${t('unlockMore')}</strong><small>CHALLENGE CARS</small>
+        <span class="shop-action">${isGerman() ? 'ÖFFNEN' : 'OPEN'}</span></div>
       </button>`);
     }
     $('#carShop').innerHTML = carShopItems.join('');
@@ -1772,17 +2055,17 @@
       media.innerHTML = managedImageMarkup(character.image, character.name, 'shop-preview-skin');
       hydrateManagedImages(media, 1);
       $('#shopPreviewTitle').textContent = character.name;
-      $('#shopPreviewBadge').textContent = character.challenge ? 'UNLOCKABLE SKIN' : 'SKIN';
+      $('#shopPreviewBadge').textContent = character.challenge ? t('unlockableSkin') : 'SKIN';
       $('#shopPreviewMeta').innerHTML = character.challenge
         ? challenge.text
         : getCharacterShopCost(index) === 0
-          ? 'Starter Skin'
+          ? (isGerman() ? 'Start-SKIN' : 'Starter Skin')
           : `<span>${getCharacterShopCost(index)}</span><i class="mini-gold-coin" aria-label="gold coins">$</i>`;
       if (challenge) {
         progress.textContent = challenge.progress;
         progress.classList.remove('hidden');
       }
-      action.textContent = active ? 'ACTIVE' : unlocked ? 'SELECT SKIN' : character.challenge ? (challenge.complete ? 'UNLOCK SKIN' : 'LOCKED') : 'BUY SKIN';
+      action.textContent = active ? t('active') : unlocked ? t('selectSkin') : character.challenge ? (challenge.complete ? t('unlockSkin') : t('locked')) : t('buySkin');
       action.disabled = active || (character.challenge && !unlocked && !challenge.complete);
       action.classList.toggle('ready', character.challenge && challenge?.complete && !unlocked);
       action.classList.toggle('active', active);
@@ -1799,15 +2082,15 @@
       media.innerHTML = managedImageMarkup(car.shopAsset, car.name, 'shop-preview-car');
       hydrateManagedImages(media, 1);
       $('#shopPreviewTitle').textContent = car.name;
-      $('#shopPreviewBadge').textContent = car.challenge ? 'UNLOCKABLE CAR' : 'CAR';
+      $('#shopPreviewBadge').textContent = car.challenge ? t('unlockableCar') : 'CAR';
       $('#shopPreviewMeta').innerHTML = car.challenge
         ? `${car.boost}X BOOST · ${challenge.text}`
-        : `${car.boost}X BOOST · ${owned ? 'OWNED' : car.cost === 0 ? 'FREE' : `${car.cost} BLACK COINS`}`;
+        : `${car.boost}X BOOST · ${owned ? (isGerman() ? 'BESITZ' : 'OWNED') : car.cost === 0 ? t('free') : `${car.cost} ${t('blackCoins')}`}`;
       if (challenge) {
         progress.textContent = challenge.progress;
         progress.classList.remove('hidden');
       }
-      action.textContent = active ? 'ACTIVE' : owned ? 'SELECT CAR' : car.challenge ? (challenge.complete ? 'UNLOCK VEHICLE' : 'LOCKED') : isNext ? 'BUY CAR' : 'LOCKED';
+      action.textContent = active ? t('active') : owned ? t('selectCar') : car.challenge ? (challenge.complete ? t('unlockVehicle') : t('locked')) : isNext ? t('buyCar') : t('locked');
       action.disabled = active || (car.challenge && !owned && !challenge.complete) || (!car.challenge && !owned && !isNext);
       action.classList.toggle('ready', car.challenge && challenge?.complete && !owned);
       action.classList.toggle('active', active);
@@ -1817,11 +2100,11 @@
       media.innerHTML = managedImageMarkup(goatReward.image, 'GOAT', 'shop-preview-skin');
       hydrateManagedImages(media, 1);
       $('#shopPreviewTitle').textContent = 'GOAT';
-      $('#shopPreviewBadge').textContent = 'FINAL REWARD';
+      $('#shopPreviewBadge').textContent = t('finalReward');
       $('#shopPreviewMeta').textContent = challenge.text;
       progress.textContent = challenge.progress;
       progress.classList.remove('hidden');
-      action.textContent = unlocked ? 'COMPLETED' : challenge.complete ? 'CLAIM GOAT' : 'LOCKED';
+      action.textContent = unlocked ? t('completed') : challenge.complete ? t('claimGoat') : t('locked');
       action.disabled = unlocked || !challenge.complete;
       action.classList.toggle('ready', challenge.complete && !unlocked);
     }
@@ -1871,11 +2154,11 @@
     const nextIndex = purchasableCarOrder.filter(carType => owned.includes(carType)).length;
     if (targetIndex !== nextIndex) {
       const required = carSpecs[purchasableCarOrder[Math.max(0, targetIndex - 1)]];
-      showShopMessage(`YOU CAN'T BUY ${car.name} YET. UNLOCK ${required?.name || 'THE PREVIOUS CAR'} FIRST.`, false);
+      showShopMessage(isGerman() ? `DU KANNST ${car.name} NOCH NICHT KAUFEN. SCHALTE ZUERST ${required?.name || 'DAS VORHERIGE CAR'} FREI.` : `YOU CAN'T BUY ${car.name} YET. UNLOCK ${required?.name || 'THE PREVIOUS CAR'} FIRST.`, false);
       return;
     }
     if (getBlackCoins() < car.cost) {
-      showShopMessage(`YOU NEED ${car.cost - getBlackCoins()} MORE BLACK COINS FOR ${car.name}.`, false);
+      showShopMessage(isGerman() ? `DU BRAUCHST ${car.cost - getBlackCoins()} ${t('moreBlackCoins')} FÜR ${car.name}.` : `YOU NEED ${car.cost - getBlackCoins()} MORE BLACK COINS FOR ${car.name}.`, false);
       return;
     }
     if (!spendBlackCoins(car.cost)) return;
@@ -1885,7 +2168,7 @@
     updateMenuStats();
     updateCurrentCarCard();
     refreshUnlockAlerts(true);
-    showShopMessage(`${car.name} UNLOCKED · ${car.boost}X BOOST ACTIVE!`, true);
+    showShopMessage(isGerman() ? `${car.name} FREIGESCHALTET · ${car.boost}X BOOST AKTIV!` : `${car.name} UNLOCKED · ${car.boost}X BOOST ACTIVE!`, true);
   }
 
   let shopMessageTimer = 0;
@@ -1907,7 +2190,7 @@
     if (!wasUnlocked) {
       const cost = getCharacterShopCost(index);
       if (!spendGoldCoins(cost)) {
-        showShopMessage(`YOU NEED ${cost - getGoldCoins()} MORE GOLD COINS FOR ${character.name}.`, false);
+        showShopMessage(isGerman() ? `DU BRAUCHST ${cost - getGoldCoins()} ${t('moreGoldCoins')} FÜR ${character.name}.` : `YOU NEED ${cost - getGoldCoins()} MORE GOLD COINS FOR ${character.name}.`, false);
         return;
       }
       saveOwnedCharacters([...getOwnedCharacters(), index]);
@@ -1931,7 +2214,7 @@
     $('#challengeText').textContent = state.text;
     $('#challengeProgress').textContent = state.progress;
     const unlockButton = $('#challengeUnlock');
-    unlockButton.textContent = state.complete ? 'UNLOCK SKIN' : 'CHALLENGE LOCKED';
+    unlockButton.textContent = state.complete ? t('unlockSkin') : t('challengeLocked');
     unlockButton.disabled = !state.complete;
     unlockButton.classList.toggle('ready', state.complete);
     $('#challengeModal').classList.remove('hidden');
@@ -1948,7 +2231,7 @@
     $('#challengeText').textContent = state.text;
     $('#challengeProgress').textContent = state.progress;
     const unlockButton = $('#challengeUnlock');
-    unlockButton.textContent = state.complete ? 'UNLOCK VEHICLE' : 'CHALLENGE LOCKED';
+    unlockButton.textContent = state.complete ? t('unlockVehicle') : t('challengeLocked');
     unlockButton.disabled = !state.complete;
     unlockButton.classList.toggle('ready', state.complete);
     $('#challengeModal').classList.remove('hidden');
@@ -1963,7 +2246,7 @@
     $('#challengeText').textContent = state.text;
     $('#challengeProgress').textContent = state.progress;
     const unlockButton = $('#challengeUnlock');
-    unlockButton.textContent = state.complete ? 'CLAIM GOAT' : 'CHALLENGE LOCKED';
+    unlockButton.textContent = state.complete ? t('claimGoat') : t('challengeLocked');
     unlockButton.disabled = !state.complete;
     unlockButton.classList.toggle('ready', state.complete);
     $('#challengeModal').classList.remove('hidden');
@@ -1984,7 +2267,7 @@
       closeChallengeModal();
       updateShop();
       refreshUnlockAlerts(true);
-      showShopMessage('GOAT UNLOCKED · CHROME RUSH COMPLETE!', true);
+      showShopMessage(t('unlockGoatMessage'), true);
       return;
     }
     if (activeChallengeCarType) {
@@ -1999,7 +2282,7 @@
       updateCurrentCarCard();
       updateMenuStats();
       refreshUnlockAlerts(true);
-      showShopMessage(`${carSpecs[type].name} CHALLENGE COMPLETE · VEHICLE UNLOCKED!`, true);
+      showShopMessage(isGerman() ? `${carSpecs[type].name} CHALLENGE GESCHAFFT · FAHRZEUG FREIGESCHALTET!` : `${carSpecs[type].name} CHALLENGE COMPLETE · VEHICLE UNLOCKED!`, true);
       return;
     }
     if (activeChallengeIndex < 0 || isCharacterUnlocked(activeChallengeIndex)) return;
@@ -2013,7 +2296,7 @@
     updateShop();
     updateCharacterLocks();
     refreshUnlockAlerts(true);
-    showShopMessage(`${characters[unlockedIndex].name} CHALLENGE COMPLETE · SKIN UNLOCKED!`, true);
+    showShopMessage(isGerman() ? `${characters[unlockedIndex].name} CHALLENGE GESCHAFFT · SKIN FREIGESCHALTET!` : `${characters[unlockedIndex].name} CHALLENGE COMPLETE · SKIN UNLOCKED!`, true);
   }
 
   function openCharacterShop() {
@@ -2053,7 +2336,7 @@
       const state = getOpponentUnlockState(index);
       const locked = !state.unlocked;
       card.classList.toggle('locked', locked);
-      card.querySelector('.opponent-lock-status').textContent = locked ? `🔒 ${state.completed} / 4 · VIEW PROGRESS` : 'LEVEL OPEN';
+      card.querySelector('.opponent-lock-status').textContent = locked ? `🔒 ${state.completed} / 4 · ${t('openProgress')}` : t('levelOpen');
     });
     if (!isOpponentUnlocked(selectedOpponent)) selectedOpponent = 0;
     document.querySelectorAll('.opponent-card').forEach((card, index) => card.classList.toggle('selected', index === selectedOpponent));
@@ -2420,7 +2703,7 @@
           burst(player.x, platform.y - 8, '#ff465d', 20);
           screenShake = 10;
           pickupFlash = .7;
-          endGame('You hit an obstacle!');
+          endGame(t('youHitObstacle'));
           return;
         }
       }
@@ -2453,12 +2736,12 @@
       if (platform.type === 'trapdoor' && !platform.cracked) {
         platform.cracked = true;
         platform.opening = .28;
-        addFloatingText(player.x, player.y - 48, 'TRAPDOOR!', '#ffe0a8');
+        addFloatingText(player.x, player.y - 48, isGerman() ? 'FALLE!' : 'TRAPDOOR!', '#ffe0a8');
         burst(platform.x + platform.w / 2, platform.y, '#ca782f', 18);
         screenShake = Math.max(screenShake, 4);
       }
       if (platform.type === 'spring') {
-        addFloatingText(player.x, player.y - 50, 'SUPER JUMP!', '#f45cff');
+        addFloatingText(player.x, player.y - 50, isGerman() ? 'SUPERSPRUNG!' : 'SUPER JUMP!', '#f45cff');
         screenShake = Math.max(screenShake, 3);
       }
       burst(player.x, platform.y, opponents[selectedOpponent].accent, 7);
@@ -2481,7 +2764,7 @@
       burst(player.x, player.y, '#ff5a24', 30);
       screenShake = 11;
       pickupFlash = .8;
-      endGame('You hit the flames!');
+      endGame(t('youHitFlames'));
       return;
     }
   }
@@ -2495,7 +2778,7 @@
       nextMilestone += 100;
     }
     if (Math.floor(previousScore / 300) < Math.floor(score / 300)) {
-      showBanner('SPEED UP!', `ALTITUDE TIER ${Math.floor(score / 300) + 1}`, '#dce8ff');
+      showBanner(isGerman() ? 'SCHNELLER!' : 'SPEED UP!', `${t('altitudeTier')} ${Math.floor(score / 300) + 1}`, '#dce8ff');
       playSpeedUpSound();
     }
     checkLiveUnlockables();
@@ -2535,11 +2818,11 @@
       const total = addBlackCoin(reward);
       blackCoinsNode.textContent = total;
       playBlackCoinSound();
-      addFloatingText(coin.x, coin.y, `BLACK COINS +${reward}`, '#d7d7df');
+      addFloatingText(coin.x, coin.y, `${t('blackCoins')} +${reward}`, '#d7d7df');
       burst(coin.x, coin.y, '#4c4c58', 18);
       emitPickupRing(coin.x, coin.y, '#d7d7df');
       pickupFlash = Math.max(pickupFlash, .35);
-      showBanner('BLACK COINS', `SHOP CURRENCY +${reward}`, '#d7d7df');
+      showBanner(t('blackCoins'), `${t('shopCurrency')} +${reward}`, '#d7d7df');
       if ((selectedOpponent === 0 && runBlackCoins >= 10) || getLifetimeBlackCoins() >= 30) refreshUnlockAlerts(true);
     });
 
@@ -2557,11 +2840,11 @@
       superJumpUntil = elapsed + 5;
       playShoeSound();
       if (runTunTuns % 10 === 0) playTunTunSound();
-      addFloatingText(shoe.x, shoe.y, 'DOUBLE JUMP 5s!', '#f4eee2');
+      addFloatingText(shoe.x, shoe.y, `${t('doubleJump')} 5s!`, '#f4eee2');
       burst(shoe.x, shoe.y, '#f4eee2', 20);
       emitPickupRing(shoe.x, shoe.y, '#ffffff', 18);
       pickupFlash = Math.max(pickupFlash, .42);
-      showBanner('DOUBLE JUMP!', '2x HEIGHT FOR 5 SECONDS', '#f4eee2');
+      showBanner(`${t('doubleJump')}!`, t('doubleJumpHeight'), '#f4eee2');
       updatePowerHud();
       if (navigator.vibrate) navigator.vibrate([30, 20, 45]);
     });
@@ -2610,7 +2893,7 @@
       ride = null;
       player.vy = -790 * getPaceMultiplier() * (superJumpUntil > elapsed ? Math.SQRT2 : 1);
       updatePowerHud();
-      addFloatingText(player.x, player.y - 45, 'FLY!', color);
+      addFloatingText(player.x, player.y - 45, isGerman() ? 'FLIEG!' : 'FLY!', color);
       burst(player.x, player.y, color, 15);
     }
   }
@@ -2687,7 +2970,7 @@
     const chips = [];
     if (ride) chips.push(`🚘 ${carSpecs[ride.type].label}`);
     const shoeTime = Math.max(0, superJumpUntil - elapsed);
-    if (shoeTime > 0) chips.push(`👟 DOUBLE JUMP ${shoeTime.toFixed(1)}s`);
+    if (shoeTime > 0) chips.push(`👟 ${t('doubleJump')} ${shoeTime.toFixed(1)}s`);
     const markup = chips.map(text => `<span class="power-chip">${text}</span>`).join('');
     if (markup !== lastPowerHudMarkup) {
       powerHud.innerHTML = markup;
@@ -2701,7 +2984,7 @@
     if (!boss && elapsed >= nextBossAt) {
       const side = Math.random() < .5 ? -1 : 1;
       boss = { side, x: side < 0 ? -85 : width + 85, targetX: side < 0 ? 58 : width - 58, y: height * .22, age: 0, throws: 0 };
-      showBanner(selectedOpponent === 1 ? 'CHESTNUT!' : 'BIG DILF!', selectedOpponent === 1 ? 'HOT DOG ATTACK' : 'DOUBLE HENNESSY ATTACK', selectedOpponent === 1 ? '#ff6532' : '#ffbf4e');
+      showBanner(selectedOpponent === 1 ? 'CHESTNUT!' : 'BIG DILF!', selectedOpponent === 1 ? t('hotDogAttack') : (isGerman() ? `DOPPELTER ${t('hennessyAttack')}` : 'DOUBLE HENNESSY ATTACK'), selectedOpponent === 1 ? '#ff6532' : '#ffbf4e');
     }
     if (boss) {
       boss.age += dt;
@@ -2777,9 +3060,9 @@
     player.targetX = clamp(player.x + random(-110, 110), 28, width - 28);
     screenShake = Math.max(screenShake, 11);
     pickupFlash = Math.max(pickupFlash, .65);
-    addFloatingText(player.x, player.y - 55, 'HOT DOG HIT!', '#ffb343');
+    addFloatingText(player.x, player.y - 55, t('hotDogHit'), '#ffb343');
     burst(player.x, player.y, '#ff7a2f', 26);
-    showBanner('HOT DOG HIT!', 'STAY ON THE PLATFORMS', '#ff7a2f');
+    showBanner(t('hotDogHit'), t('stayOnPlatforms'), '#ff7a2f');
     if (navigator.vibrate) navigator.vibrate([45, 25, 70]);
   }
 
@@ -2800,7 +3083,7 @@
         burst(player.x, player.y, '#ff4b1f', 36);
         screenShake = 14;
         pickupFlash = .9;
-        endGame('Fire Hot Dogs got you!');
+        endGame(isGerman() ? 'Die Feuer-Hotdogs haben dich erwischt!' : 'Fire Hot Dogs got you!');
       }
     });
   }
@@ -2818,7 +3101,7 @@
       spin: side * random(.35, .65),
       dead: false
     });
-    showBanner('FIRE HOT DOGS!', 'DODGE OR LOSE', '#ff4b1f');
+    showBanner(t('fireHotDogs'), t('dodgeOrLose'), '#ff4b1f');
   }
 
   function activateHennessyAttack() {
@@ -2834,13 +3117,13 @@
     pickupFlash = Math.max(pickupFlash, .55);
     playHennessySound();
     playBigDilfVoice();
-    addFloatingText(player.x, player.y - 55, 'HENNESSY ATTACK 10s!', '#ffc44d');
+    addFloatingText(player.x, player.y - 55, `${t('hennessyAttack')} 10s!`, '#ffc44d');
     burst(player.x, player.y, '#d87d28', 26);
-    showBanner('HENNESSY HIT!', `EFFECT LEVEL ${hennessyCount} · 10 SECONDS`, '#ffc44d');
+    showBanner(t('hennessyHit'), `${t('effectLevel')} ${hennessyCount} · 10 ${isGerman() ? 'SEKUNDEN' : 'SECONDS'}`, '#ffc44d');
     if (navigator.vibrate) navigator.vibrate([50, 25, 50, 25, 80]);
   }
 
-  function endGame(reason = 'You fell — one more climb!') {
+  function endGame(reason = t('youFell')) {
     if (!playing) return;
     playing = false;
     paused = false;
@@ -2867,13 +3150,13 @@
     $('#finalHighscore').textContent = newHighscore;
     $('#bigDilfWon').classList.toggle('hidden', selectedOpponent !== 0);
     let message = reason;
-    if (score > opponentHighscoreAtRunStart) message = `NEW ${opponents[selectedOpponent].name} HIGHSCORE!`;
+    if (score > opponentHighscoreAtRunStart) message = `${t('newHighscore')} ${opponents[selectedOpponent].name} HIGHSCORE!`;
     else {
       const nextOpponent = opponents.find((opponent, index) => !isOpponentUnlocked(index));
-      if (nextOpponent) message = `Check your level progress to unlock ${nextOpponent.name}.`;
+      if (nextOpponent) message = isGerman() ? `Prüfe deinen Level-Fortschritt, um ${nextOpponent.name} freizuschalten.` : `Check your level progress to unlock ${nextOpponent.name}.`;
     }
     $('#resultMessage').textContent = message;
-    gameOverPanel.querySelector('h2').textContent = 'GAME OVER';
+    gameOverPanel.querySelector('h2').textContent = t('gameOver');
     gameOverPanel.classList.remove('hidden', 'auto');
     powerHud.classList.add('hidden');
     hennessyHud.classList.add('hidden');
@@ -3463,6 +3746,10 @@
     pop(event.currentTarget);
     setTimeout(openLeaderboard, 100);
   });
+  document.querySelectorAll('[data-language]').forEach(button => button.addEventListener('click', event => {
+    setLanguage(button.dataset.language);
+    pop(event.currentTarget);
+  }));
   $('#leaderboardRename')?.addEventListener('click', event => {
     askForLeaderboardName(true);
     syncLeaderboardScores();
@@ -3802,12 +4089,12 @@
       await backgroundMusic.play();
       musicWasStarted = true;
       musicStart.classList.add('music-playing');
-      musicStart.setAttribute('aria-label', 'Music preview is playing');
+      musicStart.setAttribute('aria-label', isGerman() ? 'Musikvorschau läuft' : 'Music preview is playing');
       musicPreviewTimer = setTimeout(fadeOutBackgroundMusic, 5000);
     } catch {
       musicWasStarted = false;
       musicStart.classList.remove('music-playing');
-      musicStart.setAttribute('aria-label', 'Tap again to preview music');
+      musicStart.setAttribute('aria-label', t('tapAgainMusic'));
     }
   }
 
@@ -3853,7 +4140,7 @@
     musicWasStarted = false;
     musicIsFading = false;
     musicStart.classList.remove('music-playing');
-    musicStart.setAttribute('aria-label', 'Tap again to preview music');
+    musicStart.setAttribute('aria-label', t('tapAgainMusic'));
   }
 
   musicStart.addEventListener('click', startBackgroundMusic);
@@ -3872,6 +4159,7 @@
   });
 
   buildSelections();
+  applyLanguage();
   preloadInitialAssets();
   resize();
   updateMenuStats();
