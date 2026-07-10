@@ -1669,7 +1669,7 @@
         <div class="shop-item-copy skin-item-copy"><strong>${character.name}</strong>
         <button class="shop-action skin-action challenge-action${active ? ' active' : challenge.complete ? ' ready-to-claim' : ''}" ${unlocked ? `data-character-action="${index}"` : `data-challenge-index="${index}"`}>${action}</button></div>
       </article>`;
-    }).join('') : `<div class="unlockable-empty"><strong>NOTHING HERE</strong><span>Unlock your first Skin or Car</span></div>`;
+    }).join('') : `<div class="unlockable-empty"><strong>NOTHING HERE</strong><span>Unlock a new Skin or Car first</span></div>`;
 
     const ownedPurchasableCars = purchasableCarOrder.filter(type => ownedCars.includes(type));
     const nextCarIndex = ownedPurchasableCars.length;

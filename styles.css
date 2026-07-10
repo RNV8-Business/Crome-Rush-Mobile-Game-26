@@ -150,9 +150,9 @@ button { border: 0; color: inherit; font: inherit; cursor: pointer; }
 .shop-button:active { translate: 0 4px; box-shadow: 0 2px 0 #67250f; }
 .shop-showcase { position: absolute; z-index: 3; top: -20px; right: -35px; width: 166px; height: 128px; object-fit: contain; filter: drop-shadow(0 9px 7px rgba(35,20,42,.3)); animation: showcaseFloat 2.8s ease-in-out infinite; pointer-events: none; }
 @keyframes showcaseFloat { 50% { translate: 0 -5px; rotate: 1.5deg; scale: 1.15; } }
-.menu-header div { display: flex; align-items: center; justify-content: center; gap: 9px; }
+.menu-header div { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; }
 .menu-header h1 { flex: 0 0 auto; }
-.leaderboard-menu-button { flex: 0 0 auto; min-height: 31px; padding: 0 11px; border: 1px solid rgba(80,46,92,.23); border-radius: 999px; color: #543062; background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(231,219,236,.7)); box-shadow: 0 6px 14px rgba(52,31,60,.11), inset 0 1px rgba(255,255,255,.82); font-size: clamp(8px, 2.35vw, 10px); font-weight: 1000; letter-spacing: .055em; }
+.leaderboard-menu-button { flex: 0 0 auto; min-height: 31px; padding: 0 13px; border: 1px solid rgba(80,46,92,.23); border-radius: 999px; color: #543062; background: linear-gradient(145deg, rgba(255,255,255,.82), rgba(231,219,236,.7)); box-shadow: 0 6px 14px rgba(52,31,60,.11), inset 0 1px rgba(255,255,255,.82); font-size: clamp(8px, 2.35vw, 10px); font-weight: 1000; letter-spacing: .055em; }
 .leaderboard-menu-button:active { scale: .96; filter: brightness(1.04); }
 .leaderboard-screen { gap: 12px; }
 .leaderboard-profile-card { position: relative; z-index: 2; width: min(350px, 100%); min-height: 70px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px; padding: 12px 13px; border: 1px solid rgba(70,40,82,.17); border-radius: 20px; color: #2d2034; background: rgba(255,255,255,.72); box-shadow: 0 11px 25px rgba(54,31,63,.12), inset 0 1px rgba(255,255,255,.8); }
