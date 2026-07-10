@@ -280,7 +280,7 @@
     { name: 'BIG A', image: 'assets/unlock_big_a.png', cost: 0, challenge: 'bigACollect' },
     { name: 'CARSPOTTER', image: 'assets/unlock_carspotter.png', cost: 0, challenge: 'carspotterAllCars' },
     { name: 'SPEED', image: 'assets/unlock_speed.png', cost: 0, challenge: 'speedCr7_1250', celebrity: true },
-    { name: 'LARA', image: 'assets/unlock_lara.png', cost: 0, challenge: 'laraMarkChestnut1000' },
+    { name: 'LARA', image: 'assets/unlock_lara.png', cost: 0, challenge: 'lara250' },
     { name: 'GREEK MOM', image: 'assets/unlock_greek_mom.png', cost: 0, challenge: 'tunTun25' },
     { name: 'ELKE', image: 'assets/unlock_elke.png', cost: 0, challenge: 'elkeMom1000' },
     { name: 'LEHMANN', image: 'assets/unlock_lehmann.png', cost: 0, challenge: 'lehmannExact200' },
@@ -1082,8 +1082,12 @@
       case 'chestnutTone250': return distanceState(bestSkin('TONE', 1), 250, 'Reach 250m with TONE against Chestnut', 'TONE');
       case 'hustlauiUrch': return collectionState(['HUSTLAUI', 'URCH'], [], 'Collect HUSTLAUI and URCH');
       case 'sawaFabel800': return distanceState(bestSkin('FABEL'), 800, 'Reach 800m with FABEL', 'FABEL');
-      case 'markYoungCrisCr7': return collectionState(['YOUNG CRIS', 'CR7'], [], 'Collect YOUNG CRIS and CR7');
-      case 'laraMarkChestnut1000': return distanceState(bestSkin('MARK', 1), 1000, 'Reach 1000m with MARK against Chestnut', 'MARK');
+      case 'markYoungCrisCr7': return challengeState(
+        ownsSkin('YOUNG CRIS') && bestSkin('LARA') >= 450,
+        'Collect YOUNG CRIS and reach 450m with LARA',
+        `YOUNG CRIS ${ownsSkin('YOUNG CRIS') ? '✓' : '○'} · LARA ${Math.min(bestSkin('LARA'), 450)}/450m`
+      );
+      case 'lara250': return distanceState(getBestHighscore(), 250, 'Reach 250m');
       case 'benBugatti1000': {
         const meters = Math.max(...['chiron', 'bugattiVeyron', 'bugattiTourbillon', 'bugattiMistral'].map(type => bestLoadout('BEN', type)));
         return distanceState(meters, 1000, 'Reach 1000m with BEN using any Bugatti', 'BEN + BUGATTI');
