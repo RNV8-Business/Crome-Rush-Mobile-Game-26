@@ -4,6 +4,7 @@
   const $ = selector => document.querySelector(selector);
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const random = (min, max) => min + Math.random() * (max - min);
+  const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
 
   const characters = [
     { name: 'GEORGE', image: 'assets/character_1.png', legCut: 790, cost: 0 },
@@ -167,7 +168,7 @@
     ...unlockableCarOrder.map(type => `car:${type}`), 'goat'
   ];
 
-  const screens = { menu: $('#menu'), characters: $('#characterScreen'), collection: $('#collectionScreen'), shop: $('#shopScreen'), opponents: $('#opponentScreen'), game: $('#gameScreen') };
+  const screens = { menu: $('#menu'), characters: $('#characterScreen'), collection: $('#collectionScreen'), shop: $('#shopScreen'), opponents: $('#opponentScreen'), leaderboard: $('#leaderboardScreen'), game: $('#gameScreen') };
   const canvas = $('#gameCanvas');
   const ctx = canvas.getContext('2d');
   const scoreNode = $('#score');
@@ -206,6 +207,7 @@
     const listeners = new Map();
     const resolveSrc = src => src;
     const notify = src => (listeners.get(src) || []).forEach(callback => callback(images.get(src)?.image));
+    const getRecord = src => images.get(resolveSrc(src));
     const getImage = src => {
       const finalSrc = resolveSrc(src);
       if (!images.has(finalSrc)) {
@@ -224,10 +226,14 @@
       record.requestedAt = Date.now();
       if (priority === 'high') record.image.fetchPriority = 'high';
       record.promise = new Promise(resolve => {
-        record.image.onload = () => {
+        const finishLoaded = () => {
           record.status = 'loaded';
           notify(finalSrc);
           resolve(record.image);
+        };
+        record.image.onload = () => {
+          if (record.image.decode) record.image.decode().then(finishLoaded).catch(finishLoaded);
+          else finishLoaded();
         };
         record.image.onerror = () => {
           record.status = 'error';
@@ -252,6 +258,13 @@
     };
     const hydrateImage = (element, src, priority = 'normal') => {
       if (!element || !src) return;
+      const record = getRecord(src);
+      if (record?.status === 'loaded' || record?.status === 'error') {
+        element.src = record.image.src || src;
+        element.classList.remove('is-loading');
+        element.classList.add('managed-image', 'is-loaded');
+        return;
+      }
       element.classList.add('managed-image', 'is-loading');
       element.src = PLACEHOLDER_IMAGE_SRC;
       loadImage(src, priority).then(image => {
@@ -260,18 +273,23 @@
         element.classList.add('is-loaded');
       });
     };
-    const loadStaggered = (sources, visibleCount = 10) => {
+    const loadStaggered = (sources, visibleCount = 10, batchSize = 6) => {
       const unique = [...new Set(sources.filter(Boolean))];
       unique.slice(0, visibleCount).forEach(src => loadImage(src, 'high'));
       let index = visibleCount;
       const pump = () => {
-        const stopAt = Math.min(index + 3, unique.length);
+        const stopAt = Math.min(index + batchSize, unique.length);
         for (; index < stopAt; index += 1) loadImage(unique[index], 'low');
         if (index < unique.length) idle(pump);
       };
       if (index < unique.length) idle(pump);
     };
-    return { getImage, loadImage, loadMany, hydrateImage, loadStaggered, onReady };
+    const warmCache = (sources, firstBatch = 18, batchSize = 8) => loadStaggered(sources, firstBatch, batchSize);
+    const isLoaded = src => {
+      const record = getRecord(src);
+      return record?.status === 'loaded' || record?.status === 'error';
+    };
+    return { getImage, loadImage, loadMany, hydrateImage, loadStaggered, warmCache, onReady, isLoaded };
   })();
 
   const characterImages = new Proxy([], {
@@ -301,6 +319,9 @@
   let collectionSort = 'date';
   let collectionType = 'skins';
   let unlockableFilter = 'open';
+  let activeLeaderboardLevel = 'big_dilf';
+  let leaderboardRefreshTimer = 0;
+  let leaderboardIsLoading = false;
   let width = 390;
   let height = 844;
   let ratio = 1;
@@ -376,6 +397,161 @@
   function saveHighscore(value, opponentIndex = selectedOpponent) {
     if (value <= getHighscore(opponentIndex)) return;
     try { localStorage.setItem(`mand.highscore.${opponents[opponentIndex].id}`, String(value)); } catch { /* Private mode. */ }
+  }
+
+  const LEADERBOARD_CONFIG = {
+    url: 'https://biwkhwiuctguancnivqk.supabase.co',
+    key: 'sb_publishable_bUPHRfSs2TtqnRsvrSViYQ_pzZHkexp',
+    table: 'leaderboard'
+  };
+  const leaderboardLevels = {
+    big_dilf: { opponentIndex: 0, label: 'BIG DILF' },
+    chestnut: { opponentIndex: 1, label: 'CHESTNUT' }
+  };
+
+  function getLeaderboardHeaders(extra = {}) {
+    return {
+      apikey: LEADERBOARD_CONFIG.key,
+      Authorization: `Bearer ${LEADERBOARD_CONFIG.key}`,
+      ...extra
+    };
+  }
+
+  function makePlayerId() {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+    return `player-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  }
+
+  function getLeaderboardPlayerId() {
+    try {
+      let id = localStorage.getItem('chromeRush.leaderboard.playerId');
+      if (!id) {
+        id = makePlayerId();
+        localStorage.setItem('chromeRush.leaderboard.playerId', id);
+      }
+      return id;
+    } catch { return makePlayerId(); }
+  }
+
+  function sanitizePlayerName(value) {
+    return String(value || '').trim().replace(/\s+/g, ' ').slice(0, 18);
+  }
+
+  function getLeaderboardPlayerName() {
+    try { return sanitizePlayerName(localStorage.getItem('chromeRush.leaderboard.playerName')) || ''; }
+    catch { return ''; }
+  }
+
+  function saveLeaderboardPlayerName(name) {
+    try { localStorage.setItem('chromeRush.leaderboard.playerName', sanitizePlayerName(name)); } catch { /* Private mode. */ }
+  }
+
+  function askForLeaderboardName(force = false) {
+    const current = getLeaderboardPlayerName();
+    if (current && !force) return current;
+    const typed = prompt('ENTER YOUR NAME', current || '');
+    const name = sanitizePlayerName(typed) || current || `PLAYER ${String(getLeaderboardPlayerId()).slice(-4).toUpperCase()}`;
+    saveLeaderboardPlayerName(name);
+    updateLeaderboardProfile();
+    return name;
+  }
+
+  function updateLeaderboardProfile() {
+    const node = $('#leaderboardPlayerName');
+    if (node) node.textContent = getLeaderboardPlayerName() || 'SET NAME';
+  }
+
+  function getLeaderboardPayload(levelKey) {
+    const level = leaderboardLevels[levelKey];
+    if (!level) return null;
+    const playerName = getLeaderboardPlayerName();
+    if (!playerName) return null;
+    return {
+      player_id: getLeaderboardPlayerId(),
+      player_name: playerName,
+      level: levelKey,
+      highscore: getHighscore(level.opponentIndex),
+      skins_owned: getOwnedCharacters().length,
+      cars_owned: getOwnedCars().length,
+      updated_at: new Date().toISOString()
+    };
+  }
+
+  function getLeaderboardLevelKeyForOpponent(opponentIndex = selectedOpponent) {
+    return Object.entries(leaderboardLevels).find(([, level]) => level.opponentIndex === opponentIndex)?.[0] || 'big_dilf';
+  }
+
+  async function uploadLeaderboardScore(levelKey = getLeaderboardLevelKeyForOpponent()) {
+    const payload = getLeaderboardPayload(levelKey);
+    if (!payload || !payload.player_name) return;
+    try {
+      await fetch(`${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?on_conflict=player_id,level`, {
+        method: 'POST',
+        headers: getLeaderboardHeaders({
+          'Content-Type': 'application/json',
+          Prefer: 'resolution=merge-duplicates,return=minimal'
+        }),
+        body: JSON.stringify(payload)
+      });
+    } catch { /* Leaderboard sync should never interrupt gameplay. */ }
+  }
+
+  function syncLeaderboardScores() {
+    Object.keys(leaderboardLevels).forEach(levelKey => uploadLeaderboardScore(levelKey));
+  }
+
+  function formatLeaderboardDate(value) {
+    const time = new Date(value).getTime();
+    if (!time) return '';
+    const minutes = Math.max(1, Math.round((Date.now() - time) / 60000));
+    if (minutes < 60) return `${minutes}M AGO`;
+    const hours = Math.round(minutes / 60);
+    if (hours < 24) return `${hours}H AGO`;
+    return `${Math.round(hours / 24)}D AGO`;
+  }
+
+  function renderLeaderboardRows(rows = []) {
+    const list = $('#leaderboardList');
+    if (!list) return;
+    if (!rows.length) {
+      list.innerHTML = '<div class="leaderboard-empty"><strong>NO SCORES YET</strong><span>Play a run and come back.</span></div>';
+      return;
+    }
+    const ownId = getLeaderboardPlayerId();
+    list.innerHTML = rows.map((row, index) => `
+      <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}">
+        <span class="leaderboard-rank">#${index + 1}</span>
+        <div class="leaderboard-name"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong><small>${formatLeaderboardDate(row.updated_at)}</small></div>
+        <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS</small></div>
+      </article>
+    `).join('');
+  }
+
+  async function loadLeaderboard(levelKey = activeLeaderboardLevel) {
+    if (leaderboardIsLoading) return;
+    leaderboardIsLoading = true;
+    const status = $('#leaderboardStatus');
+    if (status) status.textContent = 'LOADING...';
+    try {
+      const url = `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc&limit=25`;
+      const response = await fetch(url, { headers: getLeaderboardHeaders() });
+      if (!response.ok) throw new Error('Leaderboard unavailable');
+      const rows = await response.json();
+      renderLeaderboardRows(Array.isArray(rows) ? rows : []);
+      if (status) status.textContent = `${leaderboardLevels[levelKey]?.label || 'LEVEL'} · TOP 25`;
+    } catch {
+      renderLeaderboardRows([]);
+      if (status) status.textContent = 'OFFLINE · TRY AGAIN LATER';
+    } finally {
+      leaderboardIsLoading = false;
+    }
+  }
+
+  function openLeaderboard() {
+    askForLeaderboardName();
+    updateLeaderboardProfile();
+    syncLeaderboardScores();
+    showScreen('leaderboard');
   }
 
   function getCharacterHighscore(opponentIndex, characterIndex) {
@@ -633,7 +809,7 @@
       }
       case 'ben500': return distanceState(bestSkin('BEN'), 500, 'Reach 500m with BEN', 'BEN');
       case 'greekMomRav1000': return distanceState(bestSkin('RAV'), 1000, 'Reach 1000m with RAV', 'RAV');
-      case 'peteMercedes300sl500': return distanceState(bestLoadout('PETE', 'mercedes300sl'), 500, 'Reach 500m using the Mercedes 300SL', 'PETE + 300SL');
+      case 'peteMercedes300sl500': return distanceState(getVehicleBestHighscore('mercedes300sl'), 500, 'Reach 500m using the Mercedes 300SL', 'MERCEDES 300SL');
       case 'vivi650': return distanceState(getBestHighscore(), 650, 'Reach 650m');
       case 'tunTun15': return distanceState(Math.max(...opponents.map((_, i) => getRoundBest('tuntun', i))), 15, 'Collect 15 Shoes in one Run', 'SHOES');
       case 'tunTun25': return distanceState(Math.max(...opponents.map((_, i) => getRoundBest('tuntun', i))), 25, 'Collect 25 Shoes in one Run', 'SHOES');
@@ -1014,6 +1190,8 @@
   function showScreen(name) {
     Object.entries(screens).forEach(([key, element]) => element.classList.toggle('hidden', key !== name));
     menuPreviewKey = '';
+    clearInterval(leaderboardRefreshTimer);
+    leaderboardRefreshTimer = 0;
     if (name !== 'shop' && $('#challengeModal')) closeChallengeModal();
     if (name !== 'shop' && $('#shopPreviewModal')) closeShopPreview();
     if (name !== 'opponents' && $('#levelUnlockModal')) closeLevelUnlockModal();
@@ -1024,6 +1202,10 @@
     if (name === 'opponents') {
       updateOpponentHighscores();
       hydrateManagedImages($('#opponentCards'), 1);
+    }
+    if (name === 'leaderboard') {
+      loadLeaderboard(activeLeaderboardLevel);
+      leaderboardRefreshTimer = setInterval(() => loadLeaderboard(activeLeaderboardLevel), 15000);
     }
     if (name === 'shop') updateShop();
     requestAnimationFrame(() => {
@@ -1166,13 +1348,17 @@
   function hydrateManagedImages(scope, visibleCount = 10) {
     const root = scope || document;
     const images = [...root.querySelectorAll('img[data-managed-src]')];
-    images.forEach((image, index) => AssetManager.hydrateImage(image, image.dataset.managedSrc, index < visibleCount ? 'high' : 'low'));
-    AssetManager.loadStaggered(images.map(image => image.dataset.managedSrc), visibleCount);
+    images.forEach((image, index) => {
+      const src = image.dataset.managedSrc;
+      const warm = AssetManager.isLoaded(src);
+      AssetManager.hydrateImage(image, src, warm || index < visibleCount ? 'high' : 'low');
+    });
+    AssetManager.loadStaggered(images.map(image => image.dataset.managedSrc), visibleCount, 8);
   }
 
   function scheduleCanvasAssetLoading(indices, visibleCount = 10) {
     const unique = [...new Set(indices.filter(index => characters[index]).map(index => characters[index].image))];
-    AssetManager.loadStaggered(unique, visibleCount);
+    AssetManager.loadStaggered(unique, visibleCount, 8);
     unique.forEach(src => AssetManager.onReady(src, () => renderPreviews(true)));
   }
 
@@ -1186,7 +1372,7 @@
     const unlockablesOpen = !$('#unlockableShop')?.classList.contains('hidden');
     const charactersOpen = !$('#characterShop')?.classList.contains('hidden');
     const panel = unlockablesOpen ? $('#unlockableShop') : charactersOpen ? $('#characterShop') : $('#carShop');
-    preparePanelAssets(panel, 12);
+    preparePanelAssets(panel, unlockablesOpen ? 24 : 32);
   }
 
   function ensureAudioReady(audio) {
@@ -1250,8 +1436,6 @@
 
   function primeGameplayAudioGesture() {
     ensureSoundContext();
-    if (selectedOpponent === 0) [bigDilfVoice, tunTunSound, bigDilfLossSound].forEach(unlockAudioFromGesture);
-    if (selectedOpponent === 1) [chestnutStartSound, chestnutGameOverSound].forEach(unlockAudioFromGesture);
   }
 
   function primeGameplayAudio() {
@@ -1288,6 +1472,35 @@
     ].filter(Boolean);
   }
 
+  function getShopPreviewAssetSources() {
+    const starterSkins = getCharacterShopOrder().map(index => characters[index]?.image);
+    const purchasableCars = purchasableCarOrder.map(type => carSpecs[type]?.shopAsset);
+    return [
+      'assets/shop_showcase.png',
+      ...starterSkins,
+      ...purchasableCars
+    ].filter(Boolean);
+  }
+
+  function getDeepCollectionAssetSources() {
+    return [
+      ...characters.map(character => character.image),
+      ...carOrder.flatMap(type => [carSpecs[type]?.shopAsset, carSpecs[type]?.asset]),
+      ...opponents.flatMap(opponent => [opponent.card, opponent.background]),
+      goatReward.image,
+      'assets/black_coin.png',
+      'assets/hennessy_bottle.png',
+      'assets/thrown_shoe.png',
+      'assets/hot_dog.png',
+      'assets/fire_hot_dogs.png'
+    ].filter(Boolean);
+  }
+
+  function warmVisualCaches() {
+    AssetManager.warmCache(getShopPreviewAssetSources(), 22, 10);
+    idle(() => AssetManager.warmCache(getDeepCollectionAssetSources(), 12, 7));
+  }
+
   function preloadInitialAssets() {
     const selectedCar = getSelectedCar();
     AssetManager.loadMany([
@@ -1301,6 +1514,7 @@
       opponents[selectedOpponent]?.card,
       opponents[selectedOpponent]?.background
     ].filter(Boolean), 'high');
+    idle(warmVisualCaches);
   }
 
   function prepareGameplayAssets() {
@@ -1955,9 +2169,13 @@
     }
     if (shopVisible || collectionVisible) document.querySelectorAll('.shop-panel:not(.hidden) .shop-character-canvas').forEach(preview => {
       const index = Number(preview.dataset.characterIndex);
+      const image = characterImages[index];
+      const renderKey = `${index}:${preview.width}:${preview.height}:${image?.complete ? image.naturalWidth : 0}`;
+      if (preview.dataset.renderKey === renderKey) return;
+      preview.dataset.renderKey = renderKey;
       const previewContext = preview.getContext('2d');
       previewContext.clearRect(0, 0, preview.width, preview.height);
-      drawWholeCharacter(previewContext, characterImages[index], preview.width / 2, preview.height / 2 + 4, 398);
+      drawWholeCharacter(previewContext, image, preview.width / 2, preview.height / 2 + 4, 398);
     });
     requestAnimationFrame(renderPreviews);
   }
@@ -2013,7 +2231,7 @@
     lastCarScore = -20;
     lastBlackCoinMeter = -30;
     lastShoeMeter = -20;
-    nextBossAt = selectedOpponent === 1 ? random(16, 21) : random(26, 32);
+    nextBossAt = selectedOpponent === 1 ? random(16, 21) : random(23, 29);
     nextFireHotDogsAt = selectedOpponent === 1 ? random(12, 18) : 9999;
     runTunTuns = 0;
     opponentHighscoreAtRunStart = getHighscore();
@@ -2056,7 +2274,7 @@
     paused = false;
     cancelAnimationFrame(animationId);
     $('#pauseScreen')?.classList.add('hidden');
-    if (musicWasStarted && !musicIsFading) backgroundMusic.volume = Math.min(backgroundMusic.volume, .58);
+    if (musicWasStarted && !musicIsFading) setBackgroundMusicVolume(.58);
   }
 
   function returnToMainMenu() {
@@ -2065,7 +2283,7 @@
   }
 
   function getPaceMultiplier() {
-    const opponentPace = selectedOpponent === 1 ? 1.22 : 1;
+    const opponentPace = selectedOpponent === 1 ? 1.22 : 1.07;
     const altitudePace = 1 + Math.min(7, Math.floor(score / 300)) * .10;
     return opponentPace * altitudePace;
   }
@@ -2084,16 +2302,16 @@
     const center = clamp(baseCenter + random(-maxSideMove, maxSideMove), 28 + platformWidth / 2, width - 28 - platformWidth / 2);
     let type = 'normal';
     const roll = Math.random();
-    const movingChance = .34 + difficulty * .12 + (selectedOpponent === 1 ? .16 : 0);
-    const trapdoorChance = selectedOpponent === 1 && score > 8 ? .17 + difficulty * .07 : 0;
-    const fireChance = .04 + difficulty * .025 + (selectedOpponent === 1 ? .055 : 0);
+    const movingChance = .34 + difficulty * .12 + (selectedOpponent === 1 ? .16 : .035);
+    const trapdoorChance = selectedOpponent === 1 && score > 8 ? .17 + difficulty * .07 : score > 45 ? .035 + difficulty * .018 : 0;
+    const fireChance = .04 + difficulty * .025 + (selectedOpponent === 1 ? .055 : .012);
     if (score > 3 && roll < movingChance) type = 'moving';
     else if (roll < movingChance + trapdoorChance) type = 'trapdoor';
     else if (score > 10 && roll < movingChance + trapdoorChance + fireChance) type = 'fire';
     else if (score > 16 && roll < movingChance + trapdoorChance + fireChance + .075) type = 'spring';
     const platformX = center - platformWidth / 2;
-    const platform = { x: platformX, originX: platformX, moveRange: width, moveSpeed: random(132, 184) + difficulty * 42 + (selectedOpponent === 1 ? 34 : 0), y: base.y - gap, w: platformWidth, h: random(12, 18), type, direction: Math.random() < .5 ? -1 : 1, dead: false, cracked: false, exploding: false, opening: 0, counted: false, hazard: null, age: 0 };
-    const hazardChance = selectedOpponent === 1 ? .16 + difficulty * .055 : .022 + difficulty * .012;
+    const platform = { x: platformX, originX: platformX, moveRange: width, moveSpeed: random(132, 184) + difficulty * 42 + (selectedOpponent === 1 ? 34 : 10), y: base.y - gap, w: platformWidth, h: random(12, 18), type, direction: Math.random() < .5 ? -1 : 1, dead: false, cracked: false, exploding: false, opening: 0, counted: false, hazard: null, age: 0 };
+    const hazardChance = selectedOpponent === 1 ? .16 + difficulty * .055 : .04 + difficulty * .018;
     if (score > 7 && type === 'normal' && platformWidth >= 102 && Math.random() < hazardChance) {
       platform.hazard = {
         side: Math.random() < .5 ? 'left' : 'right',
@@ -2497,7 +2715,7 @@
       }
       if (boss.age > 3.5) {
         boss = null;
-        nextBossAt = elapsed + (selectedOpponent === 1 ? random(16, 22) : random(27, 33));
+        nextBossAt = elapsed + (selectedOpponent === 1 ? random(16, 22) : random(24, 30));
       }
     }
 
@@ -2627,13 +2845,14 @@
     playing = false;
     paused = false;
     $('#pauseScreen').classList.add('hidden');
-    if (musicWasStarted && !musicIsFading) backgroundMusic.volume = Math.min(backgroundMusic.volume, .58);
+    if (musicWasStarted && !musicIsFading) setBackgroundMusicVolume(.58);
     saveHighscore(score);
     saveCharacterHighscore(score);
     saveVehicleHighscore(score);
     saveLoadoutHighscore(score);
     saveExactFinish(score);
     saveSpecialRunCombos();
+    uploadLeaderboardScore(getLeaderboardLevelKeyForOpponent(selectedOpponent));
     updateRoundBest('gold', selectedOpponent, runCoins);
     updateRoundBest('black', selectedOpponent, runBlackCoins);
     updateCharacterRoundBest('gold', selectedCharacter, runCoins);
@@ -2659,9 +2878,10 @@
     powerHud.classList.add('hidden');
     hennessyHud.classList.add('hidden');
     screenShake = 9;
-    playCrashSound();
+    stopGameplaySamples();
     if (selectedOpponent === 0) playBigDilfLossSound();
-    if (selectedOpponent === 1) playChestnutGameOverSound();
+    else if (selectedOpponent === 1) playChestnutGameOverSound();
+    else playCrashSound();
     draw();
     if (navigator.vibrate) navigator.vibrate([80, 35, 100]);
   }
@@ -3195,7 +3415,7 @@
     pointerActive = false;
     $('#pauseMeters').textContent = String(score);
     $('#pauseScreen').classList.remove('hidden');
-    if (musicWasStarted && !musicIsFading) backgroundMusic.volume = Math.min(backgroundMusic.volume, .22);
+    if (musicWasStarted && !musicIsFading) setBackgroundMusicVolume(.22);
     playSynthTone({ frequency: 310, endFrequency: 210, duration: .12, volume: .028, type: 'triangle' });
   }
 
@@ -3204,7 +3424,7 @@
     paused = false;
     $('#pauseScreen').classList.add('hidden');
     lastTime = performance.now();
-    if (musicWasStarted && !musicIsFading) backgroundMusic.volume = Math.min(backgroundMusic.volume, .58);
+    if (musicWasStarted && !musicIsFading) setBackgroundMusicVolume(.58);
     playSynthTone({ frequency: 260, endFrequency: 520, duration: .14, volume: .032, type: 'triangle' });
   }
 
@@ -3239,6 +3459,22 @@
     pop(event.currentTarget);
     setTimeout(openCarShop, 100);
   });
+  $('#leaderboardButton')?.addEventListener('click', event => {
+    pop(event.currentTarget);
+    setTimeout(openLeaderboard, 100);
+  });
+  $('#leaderboardRename')?.addEventListener('click', event => {
+    askForLeaderboardName(true);
+    syncLeaderboardScores();
+    loadLeaderboard(activeLeaderboardLevel);
+    pop(event.currentTarget);
+  });
+  document.querySelectorAll('[data-leaderboard-level]').forEach(button => button.addEventListener('click', () => {
+    activeLeaderboardLevel = leaderboardLevels[button.dataset.leaderboardLevel] ? button.dataset.leaderboardLevel : 'big_dilf';
+    document.querySelectorAll('[data-leaderboard-level]').forEach(tab => tab.classList.toggle('selected', tab === button));
+    loadLeaderboard(activeLeaderboardLevel);
+    pop(button);
+  }));
   document.querySelectorAll('[data-shop-tab]').forEach(button => button.addEventListener('click', () => {
     document.querySelectorAll('[data-shop-tab]').forEach(tab => tab.classList.toggle('selected', tab === button));
     $('#characterShop').classList.toggle('hidden', button.dataset.shopTab !== 'characters');
@@ -3292,16 +3528,44 @@
   let musicWasStarted = false;
   let musicIsFading = false;
   let soundContext = null;
+  let backgroundMusicSource = null;
+  let backgroundMusicGain = null;
   let logoBurstTimer = 0;
   let musicPreviewTimer = 0;
   let musicFadeFrame = 0;
+  let musicFadeTimer = 0;
+  const gameplaySamples = [bigDilfVoice, tunTunSound, bigDilfLossSound, chestnutStartSound, chestnutGameOverSound].filter(Boolean);
+  const mediaSampleCooldowns = new WeakMap();
+  const fxCooldowns = new Map();
 
-  function playAudioSample(audio, volume = 1) {
+  function stopAudioSample(audio) {
     if (!audio) return;
     try {
       audio.pause();
       audio.currentTime = 0;
-      audio.volume = volume;
+    } catch {
+      /* Ignore unsupported audio state changes on older mobile browsers. */
+    }
+  }
+
+  function stopGameplaySamples(except = null) {
+    gameplaySamples.forEach(audio => {
+      if (audio !== except) stopAudioSample(audio);
+    });
+  }
+
+  function playAudioSample(audio, volume = 1, options = {}) {
+    if (!audio) return;
+    const { exclusive = true, cooldown = 0 } = options;
+    const now = performance.now();
+    const lastPlayed = mediaSampleCooldowns.get(audio) || 0;
+    if (cooldown && now - lastPlayed < cooldown) return;
+    mediaSampleCooldowns.set(audio, now);
+    try {
+      if (exclusive) stopGameplaySamples(audio);
+      audio.pause();
+      audio.currentTime = 0;
+      try { audio.volume = volume; } catch { /* iOS may ignore direct media volume. */ }
       audio.play().catch(() => {});
     } catch {
       /* Ignore unsupported audio state changes on older mobile browsers. */
@@ -3309,7 +3573,7 @@
   }
 
   function playBigDilfVoice() {
-    playAudioSample(bigDilfVoice, 1);
+    playAudioSample(bigDilfVoice, 1, { cooldown: 4200 });
   }
 
   function playTunTunSound() {
@@ -3330,17 +3594,19 @@
 
   async function startSelectedLevel() {
     if (!isOpponentUnlocked(selectedOpponent)) return;
-    primeGameplayAudioGesture();
-    await prepareGameplayAssets();
+    stopGameplaySamples();
+    ensureSoundContext();
     if (selectedOpponent === 0) playBigDilfVoice();
     if (selectedOpponent === 1) playChestnutStartSound();
+    await prepareGameplayAssets();
     startGame();
   }
 
   async function restartCurrentRun() {
-    primeGameplayAudioGesture();
-    await prepareGameplayAssets();
+    stopGameplaySamples();
+    ensureSoundContext();
     if (selectedOpponent === 1) playChestnutStartSound();
+    await prepareGameplayAssets();
     startGame();
   }
 
@@ -3350,6 +3616,38 @@
     if (!soundContext) soundContext = new AudioContextClass();
     if (soundContext.state === 'suspended') soundContext.resume().catch(() => {});
     return soundContext;
+  }
+
+  function setupBackgroundMusicNode() {
+    const audioContext = ensureSoundContext();
+    if (!audioContext || backgroundMusicGain || !backgroundMusic) return backgroundMusicGain;
+    try {
+      backgroundMusicSource = audioContext.createMediaElementSource(backgroundMusic);
+      backgroundMusicGain = audioContext.createGain();
+      backgroundMusicSource.connect(backgroundMusicGain);
+      backgroundMusicGain.connect(audioContext.destination);
+    } catch {
+      backgroundMusicGain = null;
+    }
+    return backgroundMusicGain;
+  }
+
+  function setBackgroundMusicVolume(volume) {
+    const gain = backgroundMusicGain || setupBackgroundMusicNode();
+    if (gain) {
+      gain.gain.cancelScheduledValues(0);
+      gain.gain.setValueAtTime(volume, soundContext.currentTime);
+      return;
+    }
+    try { backgroundMusic.volume = volume; } catch { /* iOS may ignore direct media volume. */ }
+  }
+
+  function canPlayFx(key, cooldownMs) {
+    const now = performance.now();
+    const lastPlayed = fxCooldowns.get(key) || 0;
+    if (now - lastPlayed < cooldownMs) return false;
+    fxCooldowns.set(key, now);
+    return true;
   }
 
   function playSynthTone({ frequency = 220, endFrequency = frequency, duration = .12, volume = .04, type = 'sine', delay = 0 }) {
@@ -3381,20 +3679,24 @@
   }
 
   function playMilestoneSound(meters) {
+    if (!canPlayFx('milestone', 850)) return;
     const lift = Math.min(260, Math.floor(meters / 100) * 14);
     [0, .085, .17].forEach((delay, index) => playSynthTone({ frequency: 420 + lift + index * 150, endFrequency: 560 + lift + index * 170, duration: .16, volume: .045, type: 'triangle', delay }));
   }
 
   function playSpeedUpSound() {
+    if (!canPlayFx('speedUp', 900)) return;
     [0, .07].forEach((delay, index) => playSynthTone({ frequency: 260 + index * 180, endFrequency: 520 + index * 220, duration: .16, volume: .035, type: 'sawtooth', delay }));
   }
 
   function playCrashSound() {
+    if (!canPlayFx('crash', 600)) return;
     playSynthTone({ frequency: 145, endFrequency: 38, duration: .32, volume: .065, type: 'sawtooth' });
     playSynthTone({ frequency: 82, endFrequency: 30, duration: .42, volume: .055, type: 'triangle', delay: .018 });
   }
 
   function playCoinSound() {
+    if (!canPlayFx('coin', 55)) return;
     const audioContext = ensureSoundContext();
     if (!audioContext || audioContext.state !== 'running') return;
     const start = audioContext.currentTime;
@@ -3413,6 +3715,7 @@
   }
 
   function playBlackCoinSound() {
+    if (!canPlayFx('blackCoin', 115)) return;
     const audioContext = ensureSoundContext();
     if (!audioContext || audioContext.state !== 'running') return;
     const start = audioContext.currentTime;
@@ -3429,6 +3732,7 @@
   }
 
   function playHennessySound() {
+    if (!canPlayFx('hennessy', 360)) return;
     const audioContext = ensureSoundContext();
     if (!audioContext || audioContext.state !== 'running') return;
     const start = audioContext.currentTime;
@@ -3445,6 +3749,7 @@
   }
 
   function playShoeSound() {
+    if (!canPlayFx('shoe', 120)) return;
     const audioContext = ensureSoundContext();
     if (!audioContext || audioContext.state !== 'running') return;
     const start = audioContext.currentTime;
@@ -3461,6 +3766,7 @@
   }
 
   function playBoostSound(type) {
+    if (!canPlayFx('boost', 400)) return;
     const audioContext = ensureSoundContext();
     if (!audioContext || audioContext.state !== 'running') return;
     const tier = Math.max(0, carOrder.indexOf(type));
@@ -3482,14 +3788,15 @@
   async function startBackgroundMusic() {
     clearTimeout(logoBurstTimer);
     clearTimeout(musicPreviewTimer);
+    clearTimeout(musicFadeTimer);
     cancelAnimationFrame(musicFadeFrame);
     musicIsFading = false;
     musicStart.classList.remove('sparkle-burst');
     void musicStart.offsetWidth;
     musicStart.classList.add('sparkle-burst');
     logoBurstTimer = setTimeout(() => musicStart.classList.remove('sparkle-burst'), 1050);
-    ensureSoundContext();
-    backgroundMusic.volume = .58;
+    setupBackgroundMusicNode();
+    setBackgroundMusicVolume(.58);
     backgroundMusic.currentTime = 0;
     try {
       await backgroundMusic.play();
@@ -3505,27 +3812,48 @@
   }
 
   function fadeOutBackgroundMusic() {
+    clearTimeout(musicFadeTimer);
     cancelAnimationFrame(musicFadeFrame);
     musicIsFading = true;
-    const startVolume = backgroundMusic.volume;
-    const duration = 2600;
+    const duration = 3200;
     const startedAt = performance.now();
-    const fade = now => {
-      const progress = clamp((now - startedAt) / duration, 0, 1);
-      backgroundMusic.volume = startVolume * (1 - progress);
+    const gain = backgroundMusicGain || setupBackgroundMusicNode();
+    if (gain && soundContext) {
+      const now = soundContext.currentTime;
+      const currentVolume = Math.max(.001, gain.gain.value || .58);
+      gain.gain.cancelScheduledValues(now);
+      gain.gain.setValueAtTime(currentVolume, now);
+      gain.gain.linearRampToValueAtTime(.0001, now + duration / 1000);
+      musicFadeTimer = setTimeout(finishBackgroundMusicFade, duration + 80);
+      return;
+    }
+    const fade = () => {
+      const progress = clamp((performance.now() - startedAt) / duration, 0, 1);
+      const nextVolume = .58 * (1 - progress);
+      try { backgroundMusic.volume = nextVolume; } catch { /* iOS may ignore direct media volume. */ }
       if (progress < 1) {
-        musicFadeFrame = requestAnimationFrame(fade);
+        musicFadeTimer = setTimeout(fade, 50);
         return;
       }
+      finishBackgroundMusicFade();
+    };
+    fade();
+  }
+
+  function finishBackgroundMusicFade() {
+    clearTimeout(musicFadeTimer);
+    cancelAnimationFrame(musicFadeFrame);
+    try {
       backgroundMusic.pause();
       backgroundMusic.currentTime = 0;
-      backgroundMusic.volume = .58;
-      musicWasStarted = false;
-      musicIsFading = false;
-      musicStart.classList.remove('music-playing');
-      musicStart.setAttribute('aria-label', 'Tap again to preview music');
-    };
-    musicFadeFrame = requestAnimationFrame(fade);
+    } catch {
+      /* Ignore unsupported audio state changes on older mobile browsers. */
+    }
+    setBackgroundMusicVolume(.58);
+    musicWasStarted = false;
+    musicIsFading = false;
+    musicStart.classList.remove('music-playing');
+    musicStart.setAttribute('aria-label', 'Tap again to preview music');
   }
 
   musicStart.addEventListener('click', startBackgroundMusic);
@@ -3533,8 +3861,10 @@
     if (document.visibilityState === 'hidden' && playing && !paused) pauseGame();
     if (document.visibilityState === 'hidden') {
       clearTimeout(musicPreviewTimer);
+      clearTimeout(musicFadeTimer);
       cancelAnimationFrame(musicFadeFrame);
       backgroundMusic.pause();
+      setBackgroundMusicVolume(.58);
       musicWasStarted = false;
       musicIsFading = false;
       musicStart.classList.remove('music-playing');
