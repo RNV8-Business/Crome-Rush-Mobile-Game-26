@@ -74,6 +74,8 @@
       selectSkin: 'SKIN AUSWÄHLEN',
       selectedInShop: '✓ IM SHOP AUSGEWÄHLT',
       setName: 'NAMEN SETZEN',
+      searchCollection: 'SAMMLUNG DURCHSUCHEN',
+      searchShop: 'SHOP DURCHSUCHEN',
       shopSubtitle: 'Schalte Spieler frei und verbessere dein Fahrzeug',
       shopCurrency: 'SHOP-WÄHRUNG',
       skin: 'SKIN',
@@ -156,6 +158,8 @@
       selectSkin: 'SELECT SKIN',
       selectedInShop: '✓ SELECTED IN SHOP',
       setName: 'SET NAME',
+      searchCollection: 'SEARCH COLLECTION',
+      searchShop: 'SEARCH SHOP',
       shopSubtitle: 'Unlock characters and upgrade your ride',
       shopCurrency: 'SHOP CURRENCY',
       skin: 'SKIN',
@@ -178,6 +182,14 @@
   };
   const t = key => i18n[currentLanguage]?.[key] || i18n.en[key] || key;
   const isGerman = () => currentLanguage === 'de';
+  const normalizeSearch = value => String(value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+  const matchesSearch = (label, term) => !term || normalizeSearch(label).includes(term);
+  const searchEmptyMarkup = () => `<div class="search-empty"><strong>${isGerman() ? 'NICHTS GEFUNDEN' : 'NO RESULTS'}</strong><span>${isGerman() ? 'Versuche einen anderen Namen' : 'Try another name'}</span></div>`;
   function translateChallengeText(text = '') {
     if (!isGerman() || !text) return text;
     let output = String(text)
@@ -186,7 +198,7 @@
       .replace(/Reach exactly/gi, 'Erreiche genau')
       .replace(/Reach/gi, 'Erreiche')
       .replace(/Collect every single/gi, 'Sammle jeden')
-      .replace(/Collect every/gi, 'Sammle jedes')
+      .replace(/Collect every/gi, 'Sammle jeden')
       .replace(/Collect/gi, 'Sammle')
       .replace(/Unlock/gi, 'Schalte frei')
       .replace(/using any/gi, 'mit einem beliebigen')
@@ -536,6 +548,8 @@
   let activeShopPreview = null;
   let collectionSort = 'date';
   let collectionType = 'skins';
+  let collectionSearchTerm = '';
+  let shopSearchTerm = '';
   let unlockableFilter = 'open';
   let activeLeaderboardLevel = 'big_dilf';
   let leaderboardRefreshTimer = 0;
@@ -669,6 +683,10 @@
     document.querySelectorAll('[data-i18n]').forEach(node => {
       const key = node.dataset.i18n;
       if (key) node.textContent = t(key);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(node => {
+      const key = node.dataset.i18nPlaceholder;
+      if (key) node.setAttribute('placeholder', t(key));
     });
     document.querySelectorAll('[data-language]').forEach(button => {
       button.classList.toggle('selected', button.dataset.language === currentLanguage);
@@ -1032,6 +1050,12 @@
       return opponentScores[`${opponentIndex}:${value}`] === true;
     } catch { return false; }
   }
+  function hasExactFinishSkinOpponent(value, characterIndex, opponentIndex) {
+    try {
+      const scores = JSON.parse(localStorage.getItem('mand.exactFinishSkinOpponentScores') || '{}');
+      return scores[`${characterIndex}:${opponentIndex}:${value}`] === true;
+    } catch { return false; }
+  }
   function saveExactFinish(value) {
     try {
       const scores = JSON.parse(localStorage.getItem('mand.exactFinishScores') || '{}');
@@ -1043,6 +1067,9 @@
       const opponentScores = JSON.parse(localStorage.getItem('mand.exactFinishOpponentScores') || '{}');
       opponentScores[`${selectedOpponent}:${value}`] = true;
       localStorage.setItem('mand.exactFinishOpponentScores', JSON.stringify(opponentScores));
+      const skinOpponentScores = JSON.parse(localStorage.getItem('mand.exactFinishSkinOpponentScores') || '{}');
+      skinOpponentScores[`${selectedCharacter}:${selectedOpponent}:${value}`] = true;
+      localStorage.setItem('mand.exactFinishSkinOpponentScores', JSON.stringify(skinOpponentScores));
       if (value === 69) localStorage.setItem('mand.finishedExact69', '1');
     } catch { /* Private mode. */ }
   }
@@ -1078,15 +1105,11 @@
         return challengeState(collected === 4 && meters >= 500, 'Collect FABEL, VIVI, URCH, TONE and reach 500m with BIENMACHINE', `${collected}/4 SKINS · BIENMACHINE ${Math.min(meters, 500)}/500m`);
       }
       case 'bigDilfUrch500': return distanceState(bestSkin('URCH', 0), 500, 'Reach 500m with URCH against Big Dilf', 'URCH');
-      case 'michaChestnut750': return distanceState(bestSkin('MICHA', 1), 750, 'Reach 750m with MICHA against Chestnut', 'MICHA');
+      case 'michaChestnut750': return distanceState(bestSkin('MICHA', 1), 300, 'Reach 300m with MICHA against Chestnut', 'MICHA');
       case 'chestnutTone250': return distanceState(bestSkin('TONE', 1), 250, 'Reach 250m with TONE against Chestnut', 'TONE');
       case 'hustlauiUrch': return collectionState(['HUSTLAUI', 'URCH'], [], 'Collect HUSTLAUI and URCH');
       case 'sawaFabel800': return distanceState(bestSkin('FABEL'), 800, 'Reach 800m with FABEL', 'FABEL');
-      case 'markYoungCrisCr7': return challengeState(
-        ownsSkin('YOUNG CRIS') && bestSkin('LARA') >= 450,
-        'Collect YOUNG CRIS and reach 450m with LARA',
-        `YOUNG CRIS ${ownsSkin('YOUNG CRIS') ? '✓' : '○'} · LARA ${Math.min(bestSkin('LARA'), 450)}/450m`
-      );
+      case 'markYoungCrisCr7': return collectionState(['YOUNG CRIS', 'CR7'], [], 'Collect YOUNG CRIS and CR7');
       case 'lara250': return distanceState(getBestHighscore(), 250, 'Reach 250m');
       case 'benBugatti1000': {
         const meters = Math.max(...['chiron', 'bugattiVeyron', 'bugattiTourbillon', 'bugattiMistral'].map(type => bestLoadout('BEN', type)));
@@ -1101,7 +1124,7 @@
       case 'hennessyVro20': return distanceState(getCharacterRoundBest('hennessy', skinIndex('VRO')), 20, 'Collect 20 Hennessy Bottles in one Run using VRO', 'HENNESSY');
       case 'georgeMx5_300': return distanceState(bestLoadout('GEORGE', 'mx5'), 300, 'Reach 300m with GEORGE using Mazda MX5', 'GEORGE + MX5');
       case 'score800': return distanceState(getBestHighscore(), 800, 'Reach 800m');
-      case 'ebikeChestnut300': return distanceState(getVehicleHighscore(1, 'eBike'), 300, 'Reach 300m using E-Bike against Chestnut', 'E-BIKE');
+      case 'ebikeChestnut300': return distanceState(getVehicleHighscore(1, 'eBike'), 125, 'Reach 125m using the E-Bike against Chestnut', 'E-BIKE');
       case 'samFiat500': return distanceState(bestLoadout('SAM', 'fiatGucci'), 500, 'Reach 500m with SAM using Fiat 500 “Gucci”', 'SAM + FIAT 500');
       case 'elkeMom1000': return distanceState(bestSkin('MOM'), 1000, 'Reach 1000m with MOM', 'MOM');
       case 'urchExact200': return challengeState(hasExactFinish(200), 'Finish a Run with exactly 200m', hasExactFinish(200) ? '200m FINISH ✓' : '0 / 1 EXACT 200m FINISH');
@@ -1119,7 +1142,7 @@
       case 'carspotterAllCars': return challengeState(getOwnedCars().length === carOrder.length, 'Collect every Car', `${getOwnedCars().length} / ${carOrder.length} CARS`);
       case 'phantom500': return distanceState(getVehicleBestHighscore('rollsPhantom'), 500, 'Reach 500m using Rolls Royce Phantom', 'PHANTOM');
       case 'obamaVeyron850': return distanceState(bestLoadout('OBAMA', 'bugattiVeyron'), 850, 'Reach 850m with OBAMA using Bugatti Veyron', 'OBAMA + VEYRON');
-      case 'chestnut400': return distanceState(getHighscore(1), 400, 'Reach 400m against Chestnut');
+      case 'chestnut400': return distanceState(getHighscore(1), 300, 'Reach 300m against Chestnut');
       case 'phantomMansory': return collectionState([], ['rollsPhantom', 'mansoryGle'], 'Collect Rolls Royce Phantom and Mansory GLE');
       case 'black50': return distanceState(getLifetimeBlackCoins(), 50, 'Collect 50 Black Coins', 'BLACK COINS');
       case 'yeMaybach': return collectionState(['YE'], ['maybachS'], 'Collect YE and Maybach S');
@@ -1131,7 +1154,7 @@
       case 'drake500': return distanceState(bestSkin('DRAKE'), 500, 'Reach 500m using DRAKE', 'DRAKE');
       case 'cars20': return challengeState(getOwnedCars().length >= 20, 'Collect 20 Cars', `${Math.min(getOwnedCars().length, 20)} / 20 CARS`);
       case 'speedCr7_1250': return distanceState(bestSkin('CR7'), 1250, 'Reach 1250m with CR7', 'CR7');
-      case 'haraldExact400Chestnut': return challengeState(hasExactFinishOpponent(400, 1), 'Finish a Run with exactly 400m against Chestnut', hasExactFinishOpponent(400, 1) ? 'CHESTNUT 400m FINISH ✓' : '0 / 1 CHESTNUT EXACT 400m FINISH');
+      case 'haraldExact400Chestnut': return challengeState(hasExactFinishOpponent(67, 1), 'Finish a Run with exactly 67m against Chestnut', hasExactFinishOpponent(67, 1) ? 'CHESTNUT 67m FINISH ✓' : '0 / 1 CHESTNUT EXACT 67m FINISH');
       case 'elonPolestar500': return distanceState(getVehicleBestHighscore('polestar4'), 500, 'Reach 500m using the Polestar 4', 'POLESTAR 4');
       case 'yeBianca': return collectionState(['YE', 'BIANCA'], [], 'Collect YE and BIANCA');
       case 'oprahShoesBottles20': return challengeState(hasShoesBottlesRun(20), 'Collect 20 Shoes and 20 Bottles in one Run', hasShoesBottlesRun(20) ? '20 SHOES + 20 BOTTLES ✓' : `${Math.min(runTunTuns, 20)}/20 SHOES · ${Math.min(hennessyCount, 20)}/20 BOTTLES`);
@@ -1160,10 +1183,14 @@
       case 'samScore450': return challengeState(ownsSkin('SAM') && getBestHighscore() >= 450, 'Collect SAM and reach 450m with any Skin', `SAM ${ownsSkin('SAM') ? '✓' : '○'} · ${Math.min(getBestHighscore(), 450)}/450m`);
       case 'score1000': return distanceState(getBestHighscore(), 1000, 'Reach 1000m');
       case 'pete300sl400': return distanceState(bestLoadout('PETE', 'mercedes300sl'), 400, 'Reach 400m with PETE using Mercedes 300SL', 'PETE + 300SL');
-      case 'yeChestnut1000': return distanceState(getLoadoutHighscore(1, skinIndex('YE'), 'maybachS'), 1000, 'Reach 1000m against Chestnut with YE', 'YE + MAYBACH');
+      case 'yeChestnut1000': return challengeState(
+        hasExactFinishSkinOpponent(99, skinIndex('YE'), 1),
+        'Reach exactly 99m with YE against Chestnut',
+        hasExactFinishSkinOpponent(99, skinIndex('YE'), 1) ? 'YE CHESTNUT 99m FINISH ✓' : '0 / 1 YE CHESTNUT EXACT 99m FINISH'
+      );
       case 'bentleyHermesCollect': return collectionState([], ['fiatGucci', 'rollsPhantom', 'maybachS'], 'Collect Fiat 500 “Gucci”, Rolls Royce Phantom and Maybach S');
       case 'neymarR9': return collectionState(['NEYMAR', 'R9'], [], 'Collect NEYMAR and R9');
-      case 'chestnut500': return distanceState(getHighscore(1), 500, 'Reach 500m against Chestnut');
+      case 'chestnut500': return distanceState(getHighscore(1), 150, 'Reach 150m against Chestnut');
       case 'hennessyJa15': return distanceState(getLoadoutRoundBest('hennessy', skinIndex('JA'), 'lamboUrus'), 15, 'Catch 15 Hennessy Bottles with JA in one Run', 'HENNESSY');
       case 'mercedesGle750': return distanceState(getVehicleBestHighscore('mercedesGle'), 750, 'Reach 750m with Mercedes GLE', 'MERCEDES GLE');
       case 'brabus6x6Collect': return challengeState(ownsCar('mansoryGle') && ownsSkin('RIM'), 'Collect Mansory GLE and RIM', `MANSORY GLE ${ownsCar('mansoryGle') ? '✓' : '○'} · RIM ${ownsSkin('RIM') ? '✓' : '○'}`);
@@ -1185,7 +1212,7 @@
       case 'neymar750': return distanceState(bestSkin('NEYMAR'), 750, 'Reach 750m with NEYMAR', 'NEYMAR');
       case 'allPorscheChestnut1250': {
         const cars = ['porsche911', 'carreraGT', 'porscheGt3', 'porscheGt1'];
-        return challengeState(cars.every(ownsCar) && getHighscore(1) >= 1250, 'Collect every Porsche and reach 1250m against Chestnut', `${cars.filter(ownsCar).length}/${cars.length} PORSCHE · ${Math.min(getHighscore(1), 1250)}/1250m`);
+        return challengeState(cars.every(ownsCar) && getHighscore(1) >= 700, 'Collect every Porsche Model and reach 700m against Chestnut', `${cars.filter(ownsCar).length}/${cars.length} PORSCHE · ${Math.min(getHighscore(1), 700)}/700m`);
       }
       case 'blackRavStirling20': return distanceState(getLoadoutRoundBest('black', skinIndex('RAV'), 'slrStirling'), 20, 'Collect 20 Black Coins in one Run with RAV using SLR Stirling Moss', 'BLACK COINS');
       case 'everyFerrari': {
@@ -1822,16 +1849,18 @@
     dateButton.textContent = t('date');
     scoreButton.textContent = collectionType === 'cars' ? 'BOOST' : (isGerman() ? 'PUNKTE' : 'SCORE');
     document.querySelectorAll('[data-collection-sort]').forEach(button => button.classList.toggle('selected', button.dataset.collectionSort === collectionSort));
+    const searchTerm = normalizeSearch(collectionSearchTerm);
     if (collectionType === 'cars') {
       const dateOrder = getCarCollectionOrder();
-      const collection = collectionSort === 'score'
+      const sortedCollection = collectionSort === 'score'
         ? dateOrder.slice().sort((first, second) => carSpecs[second].boost - carSpecs[first].boost || dateOrder.indexOf(first) - dateOrder.indexOf(second))
         : dateOrder;
+      const collection = sortedCollection.filter(type => matchesSearch(carSpecs[type]?.name, searchTerm));
       const selectedCar = getSelectedCar();
-      $('#collectionCount').textContent = `${collection.length} / ${carOrder.length}`;
+      $('#collectionCount').textContent = `${dateOrder.length} / ${carOrder.length}`;
       $('#collectionSummaryLabel').textContent = 'CARS';
       grid.setAttribute('aria-label', t('collectionAriaCars'));
-      grid.innerHTML = collection.map((type, position) => {
+      grid.innerHTML = collection.length ? collection.map((type, position) => {
         const car = carSpecs[type];
         const active = selectedCar === type;
         const nameSize = car.name.length > 21 ? 9 : car.name.length > 17 ? 10 : 12;
@@ -1841,19 +1870,20 @@
           <div class="shop-item-copy"><strong class="car-name" style="--car-name-size:${nameSize}px">${car.name}</strong><small>${car.boost}X BOOST</small>
           <button class="shop-action car-price-action${active ? ' active' : ''}" data-collection-car="${type}">${active ? t('active') : t('selectCar')}</button></div>
         </article>`;
-      }).join('');
+      }).join('') : searchEmptyMarkup();
       preparePanelAssets(grid, 12);
       document.querySelectorAll('[data-collection-car]').forEach(button => button.addEventListener('click', () => selectCar(button.dataset.collectionCar)));
       return;
     }
     const dateOrder = getCollectionOrder();
-    const collection = collectionSort === 'score'
+    const sortedCollection = collectionSort === 'score'
       ? dateOrder.slice().sort((first, second) => getCharacterBestHighscore(second) - getCharacterBestHighscore(first) || dateOrder.indexOf(first) - dateOrder.indexOf(second))
       : dateOrder;
-    $('#collectionCount').textContent = `${collection.length} / ${characters.length}`;
+    const collection = sortedCollection.filter(index => matchesSearch(characters[index]?.name, searchTerm));
+    $('#collectionCount').textContent = `${dateOrder.length} / ${characters.length}`;
     $('#collectionSummaryLabel').textContent = 'SKINS';
     grid.setAttribute('aria-label', t('collectionAriaSkins'));
-    grid.innerHTML = collection.map((index, position) => {
+    grid.innerHTML = collection.length ? collection.map((index, position) => {
       const character = characters[index];
       const active = selectedCharacter === index;
       const bestScore = getCharacterBestHighscore(index);
@@ -1865,7 +1895,7 @@
         <div class="shop-item-copy skin-item-copy"><strong>${character.name}</strong>
         <button class="shop-action skin-action${active ? ' active' : ''}" data-collection-character="${index}">${active ? t('active') : t('selectSkin')}</button></div>
       </article>`;
-    }).join('');
+    }).join('') : searchEmptyMarkup();
     preparePanelAssets(grid, 12);
     document.querySelectorAll('[data-collection-character]').forEach(button => button.addEventListener('click', () => {
       buyOrSelectCharacter(Number(button.dataset.collectionCharacter));
@@ -1878,11 +1908,12 @@
     const blackCoins = getBlackCoins();
     const ownedCars = getOwnedCars();
     const selectedCar = getSelectedCar();
+    const searchTerm = normalizeSearch(shopSearchTerm);
     $('#shopGoldCoins').textContent = goldCoins;
     $('#shopBlackCoins').textContent = blackCoins;
 
-    const characterOrder = getCharacterShopOrder();
-    $('#characterShop').innerHTML = characterOrder.map(index => {
+    const characterOrder = getCharacterShopOrder().filter(index => matchesSearch(characters[index]?.name, searchTerm));
+    $('#characterShop').innerHTML = characterOrder.length ? characterOrder.map(index => {
       const character = characters[index];
       const unlocked = isCharacterUnlocked(index);
       const active = selectedCharacter === index;
@@ -1899,7 +1930,7 @@
         <div class="shop-item-copy skin-item-copy"><strong>${character.name}</strong>
         <button class="shop-action skin-action${active ? ' active' : affordable ? ' affordable' : ''}" data-character-action="${index}" ${!unlocked && !affordable ? 'disabled' : ''}>${action}</button></div>
       </article>`;
-    }).join('');
+    }).join('') : searchEmptyMarkup();
 
     const unlockableStates = unlockableDisplayOrder.map(entry => getUnlockableEntryState(entry, ownedCars));
     const unlockableCounts = {
@@ -1915,6 +1946,11 @@
     });
     const visibleUnlockables = unlockableStates
       .filter(item => item.status === unlockableFilter)
+      .filter(item => {
+        if (item.entry === 'goat') return matchesSearch('GOAT', searchTerm);
+        if (item.entry.startsWith('car:')) return matchesSearch(carSpecs[item.entry.slice(4)]?.name, searchTerm);
+        return matchesSearch(item.entry, searchTerm);
+      })
       .map(item => item.entry);
     $('#unlockableShop').innerHTML = visibleUnlockables.length ? visibleUnlockables.map(entry => {
       if (entry.startsWith('car:')) {
@@ -1956,15 +1992,16 @@
         <div class="shop-item-copy skin-item-copy"><strong>${character.name}</strong>
         <button class="shop-action skin-action challenge-action${active ? ' active' : challenge.complete ? ' ready-to-claim' : ''}" ${unlocked ? `data-character-action="${index}"` : `data-challenge-index="${index}"`}>${action}</button></div>
       </article>`;
-    }).join('') : `<div class="unlockable-empty"><strong>${t('nothingHere')}</strong><span>${isGerman() ? 'Schalte zuerst einen neuen SKIN oder ein neues CAR frei' : 'Unlock a new Skin or Car first'}</span></div>`;
+    }).join('') : (searchTerm ? searchEmptyMarkup() : `<div class="unlockable-empty"><strong>${t('nothingHere')}</strong><span>${isGerman() ? 'Schalte zuerst einen neuen SKIN oder ein neues CAR frei' : 'Unlock a new Skin or Car first'}</span></div>`);
 
     const ownedPurchasableCars = purchasableCarOrder.filter(type => ownedCars.includes(type));
     const nextCarIndex = ownedPurchasableCars.length;
-    const carShopItems = purchasableCarOrder.map((type, index) => {
+    const visiblePurchasableCars = purchasableCarOrder.filter(type => matchesSearch(carSpecs[type]?.name, searchTerm));
+    const carShopItems = visiblePurchasableCars.map(type => {
       const car = carSpecs[type];
       const owned = ownedCars.includes(type);
       const active = selectedCar === type;
-      const isNext = index === nextCarIndex;
+      const isNext = purchasableCarOrder.indexOf(type) === nextCarIndex;
       const affordable = !owned && blackCoins >= car.cost;
       const label = active
         ? t('active')
@@ -1981,7 +2018,9 @@
         <button class="shop-action car-price-action${active ? ' active' : isNext && affordable ? ' affordable' : ''}" data-buy-car="${type}" ${owned ? 'disabled' : ''}>${label}</button></div>
       </article>`;
     });
-    if (purchasableCarOrder.length % 2 === 1) {
+    if (!carShopItems.length) {
+      carShopItems.push(searchEmptyMarkup());
+    } else if (!searchTerm && purchasableCarOrder.length % 2 === 1) {
       carShopItems.push(`<button class="shop-item car-shop-item unlock-more-car-card" type="button" data-open-unlockables>
         <span class="unlock-more-plus">+</span>
         <div class="shop-item-copy"><strong>${t('unlockMore')}</strong><small>CHALLENGE CARS</small>
@@ -3782,6 +3821,11 @@
     $('#unlockableShop').scrollTop = 0;
     pop(button);
   }));
+  $('#shopSearch')?.addEventListener('input', event => {
+    shopSearchTerm = event.target.value;
+    updateShop();
+    [$('#characterShop'), $('#carShop'), $('#unlockableShop')].forEach(panel => { if (panel) panel.scrollTop = 0; });
+  });
   document.querySelectorAll('[data-collection-sort]').forEach(button => button.addEventListener('click', () => {
     collectionSort = button.dataset.collectionSort === 'score' ? 'score' : 'date';
     renderCollection();
@@ -3793,6 +3837,11 @@
     $('#collectionGrid').scrollTop = 0;
     pop(button);
   }));
+  $('#collectionSearch')?.addEventListener('input', event => {
+    collectionSearchTerm = event.target.value;
+    renderCollection();
+    $('#collectionGrid').scrollTop = 0;
+  });
   $('#challengeClose').addEventListener('click', closeChallengeModal);
   $('#challengeUnlock').addEventListener('click', unlockChallengeSkin);
   $('#challengeModal').addEventListener('click', event => {
