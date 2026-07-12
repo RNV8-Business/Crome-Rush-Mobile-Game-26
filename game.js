@@ -327,10 +327,12 @@
   const carSpecs = {
     beetle: makeCar('VW BEETLE', 'beetle', 2),
     fiatGucci: makeCar('FIAT 500 "GUCCI"', 'fiat_gucci', 2, 0, 'score150'),
+    subaruForester: makeCar('SUBARU FORESTER', 'subaru_forester', 1.5, 0, 'rimExact1'),
     tRoc: makeCar('VW T-ROC', 'troc', 2, 0, 'urchScore100'),
     mx5: makeCar('MAZDA MX5', 'mx5', 3, 5),
     bvgBus: makeCar('BVG BUS', 'bvg_bus', 3, 0, 'basoExact350'),
     pmrWhip: makeCar('PMR WHIP', 'pmr_whip', 4, 0, 'sgaHarald500'),
+    bmw5erDoppelapfel: makeCar('BMW 5ER "DOPPELAPFEL"', 'bmw_5er_doppelapfel', 4, 0, 'patty450'),
     audiA3: makeCar('AUDI A3', 'audi_a3', 4, 5),
     eBike: makeCar('E-BIKE', 'ebike', 5, 0, 'bigmax250'),
     golfGti: makeCar('GOLF GTI', 'golf_gti', 5, 0, 'goldEbBike50'),
@@ -1174,9 +1176,11 @@
     const bestLoadout = (name, car, opponent = -1) => opponent < 0 ? getLoadoutBestHighscore(skinIndex(name), car) : getLoadoutHighscore(opponent, skinIndex(name), car);
     switch (key) {
       case 'score150': return distanceState(getBestHighscore(), 150, 'Reach 150m');
+      case 'rimExact1': return challengeState(hasExactFinish(1, skinIndex('RIM')), 'Reach exactly 1m with RIM', hasExactFinish(1, skinIndex('RIM')) ? 'RIM 1m FINISH ✓' : '0 / 1 RIM EXACT 1m FINISH');
       case 'urchScore100': return challengeState(ownsSkin('URCH') && bestSkin('URCH') >= 100, 'Unlock URCH and reach 100m', `URCH ${ownsSkin('URCH') ? '✓' : '○'} · ${Math.min(bestSkin('URCH'), 100)}/100m`);
       case 'basoExact350': return challengeState(hasExactFinish(350, skinIndex('BASO')), 'Reach exactly 350m with BASO', hasExactFinish(350, skinIndex('BASO')) ? 'BASO 350m FINISH ✓' : '0 / 1 BASO EXACT 350m FINISH');
       case 'sgaHarald500': return challengeState(ownsSkin('SGA') && ownsSkin('HARALD') && getBestHighscore() >= 500, 'Collect SGA, HARALD and reach 500m with any Skin', `SGA ${ownsSkin('SGA') ? '✓' : '○'} · HARALD ${ownsSkin('HARALD') ? '✓' : '○'} · ${Math.min(getBestHighscore(), 500)}/500m`);
+      case 'patty450': return distanceState(bestSkin('PATTY'), 450, 'Reach 450m with PATTY', 'PATTY');
       case 'bigmax250': return distanceState(bestSkin('BIGMAX'), 250, 'Reach 250m using BIGMAX', 'BIGMAX');
       case 'goldEbBike50': return distanceState(Math.max(...characters.map((_, i) => getLoadoutRoundBest('gold', i, 'eBike'))), 50, 'Collect 50 Gold Coins in one Run using E-Bike', 'COINS');
       case 'dre300': return distanceState(bestSkin('DRE'), 300, 'Reach 300m with DRE', 'DRE');
