@@ -48,7 +48,6 @@
       hotDogAttack: 'HOTDOG-ANGRIFF',
       hotDogHit: 'HOTDOG-TREFFER!',
       keepClimbing: 'WEITER KLETTERN',
-      leaderboardSubtitle: 'Highscores, SKINS und CARS von allen',
       levelOpen: 'LEVEL OFFEN',
       levelProgress: 'LEVEL-FORTSCHRITT',
       loading: 'LÄDT...',
@@ -132,7 +131,6 @@
       hotDogAttack: 'HOT DOG ATTACK',
       hotDogHit: 'HOT DOG HIT!',
       keepClimbing: 'KEEP CLIMBING',
-      leaderboardSubtitle: 'Highscores, SKINS and CARS from everyone',
       levelOpen: 'LEVEL OPEN',
       levelProgress: 'LEVEL PROGRESS',
       loading: 'LOADING...',
@@ -318,10 +316,10 @@
     .map(name => characters.findIndex(character => character.name === name))
     .filter(index => index >= 0);
 
-  const makeCar = (name, assetKey, boost, cost = 0, challenge = '', color = '#bfc3c9') => ({
+  const makeCar = (name, assetKey, boost, cost = 0, challenge = '', color = '#bfc3c9', extra = {}) => ({
     name, label: name, shopAsset: `assets/car_${assetKey}_shop.png`, asset: `assets/car_${assetKey}_game.png`,
     boost, distance: Math.round(boost * 220), meters: Math.max(2, Math.round(boost * 2)), speed: Math.round(500 + boost * 25),
-    color, cost, ...(challenge ? { challenge } : {})
+    color, cost, ...extra, ...(challenge ? { challenge } : {})
   });
 
   const carSpecs = {
@@ -391,6 +389,11 @@
     chromeUfo: makeCar('CHROME UFO', 'chrome_ufo', 42, 150),
     chromeheartsPj: makeCar('CHROMEHEARTS PJ', 'chromehearts_pj', 45, 170),
     fighterJet: makeCar('FIGHTER JET', 'fighter_jet', 60, 250),
+    speedboatRockets: makeCar('SPEEDBOAT "ROCKETS"', 'speedboat_rockets', 61, 200, '', '#b3262d', { goldCost: 8000, premiumDualCost: true }),
+    diamondPj: makeCar('DIAMOND PJ', 'diamond_pj', 63, 200, '', '#d9dde5', { goldCost: 12000, premiumDualCost: true }),
+    xWing: makeCar('X-WING', 'x_wing', 65, 200, '', '#b8b2a4', { goldCost: 15000, premiumDualCost: true }),
+    tumbler: makeCar('TUMBLER', 'tumbler', 67, 200, '', '#17191c', { goldCost: 15000, premiumDualCost: true }),
+    theZep: makeCar('THE ZEP', 'the_zep', 72, 200, '', '#d9b46d', { goldCost: 20000, premiumDualCost: true, featured: true }),
     bugattiMistral: makeCar('BUGATTI MISTRAL 1/1', 'bugatti_mistral', 28, 0, 'everyBugatti'),
     f1Ferrari: makeCar('F1 FERRARI', 'f1_ferrari', 30, 0, 'mythos1500'),
     batmobil: makeCar('BATMOBIL', 'batmobil', 40, 0, 'f1_1750'),
@@ -418,6 +421,7 @@
   const hennessyHud = $('#hennessyHud');
   const hennessyCountHud = $('#hennessyCountHud');
   const tunTunCountHud = $('#tunTunCountHud');
+  const sfxToggle = $('#sfxToggle');
   const eventBanner = $('#eventBanner');
   const milestoneBanner = $('#milestoneBanner');
   const dragHint = $('#dragHint');
@@ -609,6 +613,10 @@
   let bannerTimer = 0;
   let opponentHighscoreAtRunStart = 0;
   let pointerActive = false;
+  let sfxEnabled = (() => {
+    try { return localStorage.getItem('chromeRush.sfxEnabled') !== '0'; }
+    catch { return true; }
+  })();
 
   const player = { x: 195, targetX: 195, y: 650, previousY: 650, w: 46, h: 72, vy: 0 };
 
@@ -706,6 +714,7 @@
       musicStart.setAttribute('aria-label', musicWasStarted ? (isGerman() ? 'Musikvorschau läuft' : 'Music preview is playing') : t('tapAgainMusic'));
       musicStart.title = isGerman() ? 'Für Musik tippen' : 'Tap to start music';
     }
+    updateSfxToggle();
     const distanceLabel = document.querySelector('.distance small');
     if (distanceLabel) distanceLabel.textContent = t('distance');
     const pauseDistanceLabel = document.querySelector('.pause-distance span');
@@ -774,8 +783,7 @@
   function getLeaderboardPayload(levelKey) {
     const level = leaderboardLevels[levelKey];
     if (!level) return null;
-    const playerName = getLeaderboardPlayerName();
-    if (!playerName) return null;
+    const playerName = getLeaderboardPlayerName() || `PLAYER ${String(getLeaderboardPlayerId()).slice(-4).toUpperCase()}`;
     return {
       player_id: getLeaderboardPlayerId(),
       player_name: playerName,
@@ -820,6 +828,12 @@
     return isGerman() ? `VOR ${Math.round(hours / 24)} T` : `${Math.round(hours / 24)}D AGO`;
   }
 
+  function getLeaderboardProgressPercent(skinsOwned = 0, carsOwned = 0) {
+    const collected = Number(skinsOwned || 0) + Number(carsOwned || 0);
+    const total = Math.max(1, characters.length + carOrder.length);
+    return clamp(Math.round((collected / total) * 100), 0, 100);
+  }
+
   function renderLeaderboardRows(rows = []) {
     const list = $('#leaderboardList');
     if (!list) return;
@@ -828,13 +842,17 @@
       return;
     }
     const ownId = getLeaderboardPlayerId();
-    list.innerHTML = rows.map((row, index) => `
-      <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}">
-        <span class="leaderboard-rank">#${index + 1}</span>
-        <div class="leaderboard-name"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong><small>${formatLeaderboardDate(row.updated_at)}</small></div>
-        <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS</small></div>
-      </article>
-    `).join('');
+    list.innerHTML = rows.map((row, index) => {
+      const progress = getLeaderboardProgressPercent(row.skins_owned, row.cars_owned);
+      return `
+        <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}">
+          <span class="leaderboard-rank">#${index + 1}</span>
+          <div class="leaderboard-name"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong><small>${formatLeaderboardDate(row.updated_at)}</small></div>
+          <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS</small></div>
+          <div class="leaderboard-progress-ring" style="--progress: ${progress}%"><span>${progress}%</span></div>
+        </article>
+      `;
+    }).join('');
   }
 
   async function loadLeaderboard(levelKey = activeLeaderboardLevel) {
@@ -843,12 +861,12 @@
     const status = $('#leaderboardStatus');
     if (status) status.textContent = t('loading');
     try {
-      const url = `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc&limit=25`;
+      const url = `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc`;
       const response = await fetch(url, { headers: getLeaderboardHeaders() });
       if (!response.ok) throw new Error('Leaderboard unavailable');
       const rows = await response.json();
       renderLeaderboardRows(Array.isArray(rows) ? rows : []);
-      if (status) status.textContent = `${leaderboardLevels[levelKey]?.label || 'LEVEL'} · TOP 25`;
+      if (status) status.textContent = `${leaderboardLevels[levelKey]?.label || 'LEVEL'} · ${isGerman() ? 'ALLE SPIELER' : 'ALL PLAYERS'}`;
     } catch {
       renderLeaderboardRows([]);
       if (status) status.textContent = t('offline');
@@ -858,10 +876,9 @@
   }
 
   function openLeaderboard() {
-    askForLeaderboardName();
+    showScreen('leaderboard');
     updateLeaderboardProfile();
     syncLeaderboardScores();
-    showScreen('leaderboard');
   }
 
   function getCharacterHighscore(opponentIndex, characterIndex) {
@@ -1510,6 +1527,32 @@
     return true;
   }
 
+  function getCarGoldCost(car) {
+    return Math.max(0, Number(car?.goldCost || 0));
+  }
+
+  function canAffordCar(car) {
+    return getBlackCoins() >= Number(car?.cost || 0) && getGoldCoins() >= getCarGoldCost(car);
+  }
+
+  function carPriceMarkup(car) {
+    const blackCost = Number(car?.cost || 0);
+    const goldCost = getCarGoldCost(car);
+    if (blackCost === 0 && goldCost === 0) return isGerman() ? 'FREI' : 'UNLOCK';
+    if (goldCost > 0) {
+      return `<span class="dual-price"><b>${blackCost}</b><img class="mini-black-coin" src="assets/black_coin.png" alt="BLACK COINS"><em>+</em><b>${goldCost}</b><i class="mini-gold-coin" aria-label="gold coins">$</i></span>`;
+    }
+    return `<span>${blackCost}</span><img class="mini-black-coin" src="assets/black_coin.png" alt="BLACK COINS">`;
+  }
+
+  function carPriceText(car) {
+    const blackCost = Number(car?.cost || 0);
+    const goldCost = getCarGoldCost(car);
+    if (blackCost === 0 && goldCost === 0) return t('free');
+    if (goldCost > 0) return `${blackCost} ${t('blackCoins')} + ${goldCost} ${isGerman() ? 'GOLD' : 'GOLD'}`;
+    return `${blackCost} ${t('blackCoins')}`;
+  }
+
   function showScreen(name) {
     Object.entries(screens).forEach(([key, element]) => element.classList.toggle('hidden', key !== name));
     menuPreviewKey = '';
@@ -2014,17 +2057,15 @@
       const owned = ownedCars.includes(type);
       const active = selectedCar === type;
       const isNext = purchasableCarOrder.indexOf(type) === nextCarIndex;
-      const affordable = !owned && blackCoins >= car.cost;
+      const affordable = !owned && goldCoins >= getCarGoldCost(car) && blackCoins >= car.cost;
       const label = active
         ? t('active')
         : owned
           ? (isGerman() ? 'BESITZ' : 'OWNED')
-          : car.cost === 0
-              ? (isGerman() ? 'FREI' : 'UNLOCK')
-              : `<span>${car.cost}</span><img class="mini-black-coin" src="assets/black_coin.png" alt="BLACK COINS">`;
+          : carPriceMarkup(car);
       const nameSize = car.name.length > 21 ? 9 : car.name.length > 17 ? 10 : 12;
       const imageMarkup = `<div class="car-image-stage">${managedImageMarkup(car.shopAsset, car.name)}</div>`;
-      return `<article class="shop-item car-shop-item${owned ? '' : ' locked'}${active ? ' active-car' : ''}${!owned && !isNext ? ' sequence-locked' : ''}" data-car-card="${type}" style="--car-color:${car.color}">
+      return `<article class="shop-item car-shop-item${owned ? '' : ' locked'}${active ? ' active-car' : ''}${!owned && !isNext ? ' sequence-locked' : ''}${car.premiumDualCost ? ' dual-cost-car' : ''}${car.featured ? ' featured-car' : ''}" data-car-card="${type}" style="--car-color:${car.color}">
         <span class="car-tier">${String(carOrder.indexOf(type) + 1).padStart(2, '0')}</span>${imageMarkup}
         <div class="shop-item-copy"><strong class="car-name" style="--car-name-size:${nameSize}px">${car.name}</strong><small>${car.boost}X BOOST</small>
         <button class="shop-action car-price-action${active ? ' active' : isNext && affordable ? ' affordable' : ''}" data-buy-car="${type}" ${owned ? 'disabled' : ''}>${label}</button></div>
@@ -2032,12 +2073,6 @@
     });
     if (!carShopItems.length) {
       carShopItems.push(searchEmptyMarkup());
-    } else if (!searchTerm && purchasableCarOrder.length % 2 === 1) {
-      carShopItems.push(`<button class="shop-item car-shop-item unlock-more-car-card" type="button" data-open-unlockables>
-        <span class="unlock-more-plus">+</span>
-        <div class="shop-item-copy"><strong>${t('unlockMore')}</strong><small>CHALLENGE CARS</small>
-        <span class="shop-action">${isGerman() ? 'ÖFFNEN' : 'OPEN'}</span></div>
-      </button>`);
     }
     $('#carShop').innerHTML = carShopItems.join('');
     hydrateActiveShopPanel();
@@ -2140,7 +2175,7 @@
       $('#shopPreviewBadge').textContent = car.challenge ? t('unlockableCar') : 'CAR';
       $('#shopPreviewMeta').innerHTML = car.challenge
         ? `${car.boost}X BOOST · ${challenge.text}`
-        : `${car.boost}X BOOST · ${owned ? (isGerman() ? 'BESITZ' : 'OWNED') : car.cost === 0 ? t('free') : `${car.cost} ${t('blackCoins')}`}`;
+        : `${car.boost}X BOOST · ${owned ? (isGerman() ? 'BESITZ' : 'OWNED') : carPriceText(car)}`;
       if (challenge) {
         progress.textContent = challenge.progress;
         progress.classList.remove('hidden');
@@ -2212,11 +2247,17 @@
       showShopMessage(isGerman() ? `DU KANNST ${car.name} NOCH NICHT KAUFEN. SCHALTE ZUERST ${required?.name || 'DAS VORHERIGE CAR'} FREI.` : `YOU CAN'T BUY ${car.name} YET. UNLOCK ${required?.name || 'THE PREVIOUS CAR'} FIRST.`, false);
       return;
     }
-    if (getBlackCoins() < car.cost) {
-      showShopMessage(isGerman() ? `DU BRAUCHST ${car.cost - getBlackCoins()} ${t('moreBlackCoins')} FÜR ${car.name}.` : `YOU NEED ${car.cost - getBlackCoins()} MORE BLACK COINS FOR ${car.name}.`, false);
+    const missingBlack = Math.max(0, Number(car.cost || 0) - getBlackCoins());
+    const missingGold = Math.max(0, getCarGoldCost(car) - getGoldCoins());
+    if (missingBlack || missingGold) {
+      const parts = [];
+      if (missingBlack) parts.push(isGerman() ? `${missingBlack} ${t('moreBlackCoins')}` : `${missingBlack} MORE BLACK COINS`);
+      if (missingGold) parts.push(isGerman() ? `${missingGold} ${t('moreGoldCoins')}` : `${missingGold} MORE GOLD COINS`);
+      showShopMessage(isGerman() ? `DU BRAUCHST ${parts.join(' UND ')} FÜR ${car.name}.` : `YOU NEED ${parts.join(' AND ')} FOR ${car.name}.`, false);
       return;
     }
     if (!spendBlackCoins(car.cost)) return;
+    if (getCarGoldCost(car) > 0 && !spendGoldCoins(getCarGoldCost(car))) return;
     saveOwnedCars([...owned, type]);
     try { localStorage.setItem('mand.selectedCar', type); } catch { /* Private mode. */ }
     updateShop();
@@ -3238,18 +3279,14 @@
   }
 
   function triggerMilestone(meters) {
-    milestoneTimer = 1.75;
+    milestoneTimer = 1.15;
     milestoneBanner.querySelector('strong').textContent = `${meters}m`;
     milestoneBanner.classList.remove('hidden');
     milestoneBanner.style.animation = 'none';
     void milestoneBanner.offsetWidth;
     milestoneBanner.style.animation = '';
-    burst(width / 2, height * .34, '#f4f7fb', 34);
-    emitPickupRing(width / 2, height * .34, '#ffffff', 24);
-    screenShake = Math.max(screenShake, 4);
-    cameraImpact = Math.max(cameraImpact, 7);
     playMilestoneSound(meters);
-    if (navigator.vibrate) navigator.vibrate([24, 25, 45]);
+    if (navigator.vibrate) navigator.vibrate(18);
   }
 
   function emitLandingParticles(x, y, type) {
@@ -3787,6 +3824,7 @@
   $('#opponentStart').addEventListener('click', startSelectedLevel);
   $('#restartButton').addEventListener('click', restartCurrentRun);
   $('#pauseButton').addEventListener('click', pauseGame);
+  sfxToggle?.addEventListener('click', () => setSfxEnabled(!sfxEnabled));
   $('#resumeButton').addEventListener('click', resumeGame);
   $('#pauseMenuButton').addEventListener('click', () => showScreen('menu'));
   $('#menuButton').addEventListener('click', returnToMainMenu);
@@ -3890,6 +3928,21 @@
   const mediaSampleCooldowns = new WeakMap();
   const fxCooldowns = new Map();
 
+  function updateSfxToggle() {
+    if (!sfxToggle) return;
+    sfxToggle.textContent = sfxEnabled ? '♪' : '♪̸';
+    sfxToggle.classList.toggle('off', !sfxEnabled);
+    sfxToggle.setAttribute('aria-label', sfxEnabled ? (isGerman() ? 'Soundeffekte ausschalten' : 'Turn sound effects off') : (isGerman() ? 'Soundeffekte einschalten' : 'Turn sound effects on'));
+  }
+
+  function setSfxEnabled(enabled) {
+    sfxEnabled = !!enabled;
+    try { localStorage.setItem('chromeRush.sfxEnabled', sfxEnabled ? '1' : '0'); } catch { /* Private mode. */ }
+    if (!sfxEnabled) stopGameplaySamples();
+    updateSfxToggle();
+    if (sfxEnabled) playSynthTone({ frequency: 360, endFrequency: 540, duration: .1, volume: .025, type: 'triangle' });
+  }
+
   function stopAudioSample(audio) {
     if (!audio) return;
     try {
@@ -3907,7 +3960,7 @@
   }
 
   function playAudioSample(audio, volume = 1, options = {}) {
-    if (!audio) return;
+    if (!audio || !sfxEnabled) return;
     const { exclusive = true, cooldown = 0 } = options;
     const now = performance.now();
     const lastPlayed = mediaSampleCooldowns.get(audio) || 0;
@@ -3995,6 +4048,7 @@
   }
 
   function canPlayFx(key, cooldownMs) {
+    if (!sfxEnabled) return false;
     const now = performance.now();
     const lastPlayed = fxCooldowns.get(key) || 0;
     if (now - lastPlayed < cooldownMs) return false;
@@ -4003,6 +4057,7 @@
   }
 
   function playSynthTone({ frequency = 220, endFrequency = frequency, duration = .12, volume = .04, type = 'sine', delay = 0 }) {
+    if (!sfxEnabled) return;
     const audioContext = ensureSoundContext();
     if (!audioContext || audioContext.state !== 'running') return;
     const start = audioContext.currentTime + delay;
