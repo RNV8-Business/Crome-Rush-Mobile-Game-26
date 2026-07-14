@@ -397,21 +397,21 @@
     xWing: makeCar('X-WING', 'x_wing', 65, 200, '', '#b8b2a4', { goldCost: 15000, premiumDualCost: true }),
     tumbler: makeCar('TUMBLER', 'tumbler', 67, 200, '', '#17191c', { goldCost: 15000, premiumDualCost: true }),
     theZep: makeCar('THE ZEP', 'the_zep', 72, 225, '', '#d9b46d', { goldCost: 20000, premiumDualCost: true }),
-    chromerushYacht: makeCar('CHROMERUSH YACHT', 'chromerush_yacht', 74, 250, '', '#d8c88f', { goldCost: 20000, premiumDualCost: true }),
-    vflHelicopter: makeCar('VFL HELICOPTER', 'vfl_helicopter', 75, 250, '', '#1b4d86', { goldCost: 10000, premiumDualCost: true }),
-    paganiJetfighter: makeCar('PAGANI JETFIGHTER', 'pagani_jetfighter', 77, 260, '', '#1a2b40', { goldCost: 10000, premiumDualCost: true }),
-    abtecFlieger: makeCar('ABTEC FLIEGER', 'abtec_flieger', 80, 280, '', '#d71f2a', { goldCost: 12000, premiumDualCost: true }),
-    spaceRari: makeCar('SPACE RARI', 'space_rari', 83, 300, '', '#17191c', { goldCost: 14000, premiumDualCost: true }),
-    pasitoTunTun: makeCar('PASITO TUN TUN', 'pasito_tun_tun', 83, 300, '', '#ebe5dc', { goldCost: 17000, premiumDualCost: true }),
-    johnnyDangBus: makeCar('JOHNNY DANG BUS', 'johnny_dang_bus', 85, 300, '', '#e94399', { goldCost: 17000, premiumDualCost: true }),
-    mansorySubmarine: makeCar('MANSORY SUBMARINE', 'mansory_submarine', 88, 300, '', '#1a1715', { goldCost: 17500, premiumDualCost: true }),
-    flyingRimiboy: makeCar('FLYING RIMIBOY', 'flying_rimiboy', 90, 310, '', '#d7a739', { goldCost: 18500, premiumDualCost: true }),
-    airShisha: makeCar('AIR SHISHA', 'air_shisha', 92, 315, '', '#c6c8c9', { goldCost: 20000, premiumDualCost: true }),
-    bybRocketship: makeCar('BYB ROCKETSHIP', 'byb_rocketship', 92, 320, '', '#151515', { goldCost: 20000, premiumDualCost: true }),
-    spaceXProbe: makeCar('SPACE-X PROBE', 'space_x_probe', 95, 325, '', '#f0f0ee', { goldCost: 20000, premiumDualCost: true }),
-    frankMullerRide: makeCar('FRANK MULLER RIDE', 'frank_muller_ride', 99, 330, '', '#dcd4bd', { goldCost: 25000, premiumDualCost: true }),
-    bigBird: makeCar('BIG BIRD', 'big_bird', 110, 350, '', '#5c4a30', { goldCost: 25000, premiumDualCost: true }),
-    royalWagon: makeCar('ROYAL WAGON', 'royal_wagon', 150, 415, '', '#f1ede4', { goldCost: 30000, premiumDualCost: true, featured: true }),
+    chromerushYacht: makeCar('CHROMERUSH YACHT', 'chromerush_yacht', 74, 500, '', '#d8c88f', { goldCost: 9000, premiumDualCost: true }),
+    vflHelicopter: makeCar('VFL HELICOPTER', 'vfl_helicopter', 75, 600, '', '#1b4d86', { goldCost: 9500, premiumDualCost: true }),
+    paganiJetfighter: makeCar('PAGANI JETFIGHTER', 'pagani_jetfighter', 77, 680, '', '#1a2b40', { goldCost: 9500, premiumDualCost: true }),
+    abtecFlieger: makeCar('ABTEC FLIEGER', 'abtec_flieger', 80, 700, '', '#d71f2a', { goldCost: 10000, premiumDualCost: true }),
+    spaceRari: makeCar('SPACE RARI', 'space_rari', 83, 750, '', '#17191c', { goldCost: 12000, premiumDualCost: true }),
+    pasitoTunTun: makeCar('PASITO TUN TUN', 'pasito_tun_tun', 83, 770, '', '#ebe5dc', { goldCost: 13000, premiumDualCost: true }),
+    johnnyDangBus: makeCar('JOHNNY DANG BUS', 'johnny_dang_bus', 85, 780, '', '#e94399', { goldCost: 13500, premiumDualCost: true }),
+    mansorySubmarine: makeCar('MANSORY SUBMARINE', 'mansory_submarine', 88, 780, '', '#1a1715', { goldCost: 14000, premiumDualCost: true }),
+    flyingRimiboy: makeCar('FLYING RIMIBOY', 'flying_rimiboy', 90, 1, '', '#d7a739', { goldCost: 20000, premiumDualCost: true }),
+    airShisha: makeCar('AIR SHISHA', 'air_shisha', 92, 780, '', '#c6c8c9', { goldCost: 14400, premiumDualCost: true }),
+    bybRocketship: makeCar('BYB ROCKETSHIP', 'byb_rocketship', 92, 800, '', '#151515', { goldCost: 14500, premiumDualCost: true }),
+    spaceXProbe: makeCar('SPACE-X PROBE', 'space_x_probe', 95, 800, '', '#f0f0ee', { goldCost: 15000, premiumDualCost: true }),
+    frankMullerRide: makeCar('FRANK MULLER RIDE', 'frank_muller_ride', 99, 700, '', '#dcd4bd', { goldCost: 16000, premiumDualCost: true }),
+    bigBird: makeCar('BIG BIRD', 'big_bird', 110, 750, '', '#5c4a30', { goldCost: 20000, premiumDualCost: true }),
+    royalWagon: makeCar('ROYAL WAGON', 'royal_wagon', 150, 800, '', '#f1ede4', { goldCost: 25000, premiumDualCost: true, featured: true }),
     bugattiMistral: makeCar('BUGATTI MISTRAL 1/1', 'bugatti_mistral', 28, 0, 'everyBugatti'),
     f1Ferrari: makeCar('F1 FERRARI', 'f1_ferrari', 30, 0, 'mythos1500'),
     batmobil: makeCar('BATMOBIL', 'batmobil', 40, 0, 'f1_1750'),
@@ -2115,6 +2115,13 @@
         <button class="shop-action car-price-action${active ? ' active' : isNext && affordable ? ' affordable' : ''}" data-buy-car="${type}" ${owned ? 'disabled' : ''}>${label}</button></div>
       </article>`;
     });
+    if (!searchTerm) {
+      carShopItems.push(`<article class="shop-item car-shop-item unlock-more-car-card" data-open-unlockables role="button" tabindex="0" aria-label="${t('unlockMore')}">
+        <span class="unlock-more-plus" aria-hidden="true">+</span>
+        <div class="shop-item-copy"><strong>${t('unlockMore')}</strong><small>${isGerman() ? 'CHALLENGES ANSEHEN' : 'VIEW CHALLENGES'}</small>
+        <span class="shop-action">${t('unlockable')}</span></div>
+      </article>`);
+    }
     if (!carShopItems.length) {
       carShopItems.push(searchEmptyMarkup());
     }
@@ -2129,7 +2136,14 @@
       if (event.target.closest('.shop-action')) return;
       openShopPreview('car', card.dataset.carCard);
     }));
-    document.querySelectorAll('[data-open-unlockables]').forEach(card => card.addEventListener('click', openUnlockableShop));
+    document.querySelectorAll('[data-open-unlockables]').forEach(card => {
+      card.addEventListener('click', openUnlockableShop);
+      card.addEventListener('keydown', event => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        openUnlockableShop();
+      });
+    });
     document.querySelectorAll('[data-shop-skin]').forEach(card => card.addEventListener('click', event => {
       if (event.target.closest('.shop-action')) return;
       openShopPreview('skin', card.dataset.shopSkin);
