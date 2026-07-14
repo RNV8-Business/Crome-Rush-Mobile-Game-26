@@ -304,7 +304,8 @@
     { name: 'OPRAH', image: 'assets/unlock_oprah.png', cost: 0, challenge: 'oprahShoesBottles20', celebrity: true },
     { name: 'EINSTEIN', image: 'assets/unlock_einstein.png', cost: 0, challenge: 'einstein1300', celebrity: true },
     { name: 'LEO', image: 'assets/unlock_leo.png', cost: 0, challenge: 'leo1400', celebrity: true },
-    { name: 'USAIN', image: 'assets/unlock_usain.png', cost: 0, challenge: 'usain2000', celebrity: true }
+    { name: 'USAIN', image: 'assets/unlock_usain.png', cost: 0, challenge: 'usain2000', celebrity: true },
+    { name: 'BUBBLEPAT GOLD', image: 'assets/skin_bubblepat_gold.png', legCutRatio: .67, cost: 0, challenge: 'bubblepatGoldExact', hiddenUnlockable: true }
   ];
 
   const opponents = [
@@ -393,7 +394,7 @@
     diamondPj: makeCar('DIAMOND PJ', 'diamond_pj', 63, 200, '', '#d9dde5', { goldCost: 12000, premiumDualCost: true }),
     xWing: makeCar('X-WING', 'x_wing', 65, 200, '', '#b8b2a4', { goldCost: 15000, premiumDualCost: true }),
     tumbler: makeCar('TUMBLER', 'tumbler', 67, 200, '', '#17191c', { goldCost: 15000, premiumDualCost: true }),
-    theZep: makeCar('THE ZEP', 'the_zep', 72, 200, '', '#d9b46d', { goldCost: 20000, premiumDualCost: true, featured: true }),
+    theZep: makeCar('THE ZEP', 'the_zep', 72, 225, '', '#d9b46d', { goldCost: 20000, premiumDualCost: true, featured: true }),
     bugattiMistral: makeCar('BUGATTI MISTRAL 1/1', 'bugatti_mistral', 28, 0, 'everyBugatti'),
     f1Ferrari: makeCar('F1 FERRARI', 'f1_ferrari', 30, 0, 'mythos1500'),
     batmobil: makeCar('BATMOBIL', 'batmobil', 40, 0, 'f1_1750'),
@@ -789,7 +790,7 @@
       player_name: playerName,
       level: levelKey,
       highscore: getHighscore(level.opponentIndex),
-      skins_owned: getOwnedCharacters().length,
+      skins_owned: getOwnedProgressCharacters().length,
       cars_owned: getOwnedCars().length,
       updated_at: new Date().toISOString()
     };
@@ -830,7 +831,7 @@
 
   function getLeaderboardProgressPercent(skinsOwned = 0, carsOwned = 0) {
     const collected = Number(skinsOwned || 0) + Number(carsOwned || 0);
-    const total = Math.max(1, characters.length + carOrder.length);
+    const total = Math.max(1, getProgressCharacterTotal() + carOrder.length);
     return clamp(Math.round((collected / total) * 100), 0, 100);
   }
 
@@ -1003,6 +1004,18 @@
     } catch { return [getDefaultOwnedCharacter()]; }
   }
 
+  function isProgressCharacter(index) {
+    return Boolean(characters[index] && !characters[index].hiddenUnlockable);
+  }
+
+  function getProgressCharacterTotal() {
+    return characters.filter((_, index) => isProgressCharacter(index)).length;
+  }
+
+  function getOwnedProgressCharacters() {
+    return getOwnedCharacters().filter(isProgressCharacter);
+  }
+
   function saveOwnedCharacters(indices) {
     const defaultIndex = getDefaultOwnedCharacter();
     const normalized = [...new Set([defaultIndex, ...indices])].filter(index => characters[index]);
@@ -1165,6 +1178,7 @@
       case 'aliBigAElli800': return challengeState(ownsSkin('BIG A') && bestSkin('ELLI') >= 800, 'Collect BIG A and reach 800m with ELLI', `BIG A ${ownsSkin('BIG A') ? '✓' : '○'} · ELLI ${Math.min(bestSkin('ELLI'), 800)}/800m`);
       case 'bigACollect': return challengeState(hasExactFinish(69), 'Finish a run with exactly 69m', hasExactFinish(69) ? '69m FINISH ✓' : '0 / 1 EXACT 69m FINISH');
       case 'jerryExact233': return challengeState(hasExactFinish(233), 'Finish a Run with exactly 233m', hasExactFinish(233) ? '233m FINISH ✓' : '0 / 1 EXACT 233m FINISH');
+      case 'bubblepatGoldExact': return challengeState(hasExactFinish(2295) || hasExactFinish(1810), 'Finish a Run with exactly 2295m or 1810m', hasExactFinish(2295) ? '2295m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 EXACT 2295m OR 1810m FINISH');
       case 'goldFabel500': return distanceState(getCharacterRoundBest('gold', skinIndex('FABEL')), 500, 'Collect 500 Coins in one Run with FABEL', 'COINS');
       case 'carspotterAllCars': return challengeState(getOwnedCars().length === carOrder.length, 'Collect every Car', `${getOwnedCars().length} / ${carOrder.length} CARS`);
       case 'phantom500': return distanceState(getVehicleBestHighscore('rollsPhantom'), 500, 'Reach 500m using Rolls Royce Phantom', 'PHANTOM');
@@ -1227,7 +1241,7 @@
       case 'cars10Obama': return challengeState(getOwnedCars().length >= 10 && ownsSkin('OBAMA'), 'Collect 10 Cars and OBAMA', `${Math.min(getOwnedCars().length, 10)}/10 CARS · OBAMA ${ownsSkin('OBAMA') ? '✓' : '○'}`);
       case 'benniLambo300': return distanceState(Math.max(...['huracan', 'lamboMiura', 'lamboUrus'].map(car => bestLoadout('BENNI', car))), 300, 'Reach 300m with BENNI using any Lamborghini', 'BENNI + LAMBORGHINI');
       case 'maseratiMc20FordGt': return challengeState(getBestHighscore() >= 700 && ownsCar('fordGt'), 'Reach 700m and collect Ford GT', `${Math.min(getBestHighscore(), 700)}/700m · FORD GT ${ownsCar('fordGt') ? '✓' : '○'}`);
-      case 'mclaren720sCollect': return challengeState(getOwnedCharacters().length >= 25 && ownsCar('lamboCountach'), 'Collect 25 Skins and Lamborghini Countach', `${Math.min(getOwnedCharacters().length, 25)}/25 SKINS · COUNTACH ${ownsCar('lamboCountach') ? '✓' : '○'}`);
+      case 'mclaren720sCollect': return challengeState(getOwnedProgressCharacters().length >= 25 && ownsCar('lamboCountach'), 'Collect 25 Skins and Lamborghini Countach', `${Math.min(getOwnedProgressCharacters().length, 25)}/25 SKINS · COUNTACH ${ownsCar('lamboCountach') ? '✓' : '○'}`);
       case 'fourFerraris': return collectionState([], ['f40', 'f50', 'enzo', 'laferrari'], 'Collect Ferrari F40, F50, Enzo and LaFerrari');
       case 'f40BigDilf500': return distanceState(getVehicleHighscore(0, 'f40'), 500, 'Reach 500m against Big Dilf using Ferrari F40', 'F40');
       case 'porscheGt3Carrera': return collectionState([], ['porscheGt3', 'carreraGT'], 'Collect Porsche GT3 “BigSexy” and Porsche Carrera GT');
@@ -1266,12 +1280,13 @@
   }
 
   function getGoatState() {
-    const skins = getOwnedCharacters().length;
+    const skins = getOwnedProgressCharacters().length;
     const cars = getOwnedCars().length;
+    const totalSkins = getProgressCharacterTotal();
     return {
-      complete: skins === characters.length && cars === carOrder.length,
+      complete: skins === totalSkins && cars === carOrder.length,
       text: 'Collect every Car and every Skin',
-      progress: `${skins} / ${characters.length} SKINS · ${cars} / ${carOrder.length} CARS`
+      progress: `${skins} / ${totalSkins} SKINS · ${cars} / ${carOrder.length} CARS`
     };
   }
 
@@ -1365,6 +1380,13 @@
     return { entry, owned, ready: challenge.complete && !owned, status: owned ? 'owned' : challenge.complete ? 'ready' : 'open' };
   }
 
+  function getHiddenUnlockableStates() {
+    return characters
+      .filter(character => character.hiddenUnlockable)
+      .map(character => getUnlockableEntryState(character.name))
+      .filter(item => item.status === 'ready');
+  }
+
   const opponentUnlockRules = {
     1: { cars: 15, skins: 15, distance: 500, differentSkins: 3, cost: 2000 }
   };
@@ -1380,9 +1402,9 @@
     if (index === 0) return { unlocked: true, paid: true, gameplayReady: true, completed: 4 };
     const rule = opponentUnlockRules[index];
     const cars = getOwnedCars().length;
-    const skins = getOwnedCharacters().length;
+    const skins = getOwnedProgressCharacters().length;
     const qualifyingSkins = characters.reduce((total, character, characterIndex) => (
-      total + (getCharacterBestHighscore(characterIndex) >= rule.distance ? 1 : 0)
+      total + (isProgressCharacter(characterIndex) && getCharacterBestHighscore(characterIndex) >= rule.distance ? 1 : 0)
     ), 0);
     const carsReady = cars >= rule.cars;
     const skinsReady = skins >= rule.skins;
@@ -1693,7 +1715,7 @@
     const accountSkins = $('#accountSkins');
     if (accountHighscore) accountHighscore.textContent = `${getBestHighscore()}m`;
     if (accountCars) accountCars.textContent = `${getOwnedCars().length} / ${carOrder.length}`;
-    if (accountSkins) accountSkins.textContent = `${getOwnedCharacters().length} / ${characters.length}`;
+    if (accountSkins) accountSkins.textContent = `${getOwnedProgressCharacters().length} / ${getProgressCharacterTotal()}`;
     updateUnlockBadge();
   }
 
@@ -1935,7 +1957,7 @@
       ? dateOrder.slice().sort((first, second) => getCharacterBestHighscore(second) - getCharacterBestHighscore(first) || dateOrder.indexOf(first) - dateOrder.indexOf(second))
       : dateOrder;
     const collection = sortedCollection.filter(index => matchesSearch(characters[index]?.name, searchTerm));
-    $('#collectionCount').textContent = `${dateOrder.length} / ${characters.length}`;
+    $('#collectionCount').textContent = `${getOwnedProgressCharacters().length} / ${getProgressCharacterTotal()}`;
     $('#collectionSummaryLabel').textContent = 'SKINS';
     grid.setAttribute('aria-label', t('collectionAriaSkins'));
     grid.innerHTML = collection.length ? collection.map((index, position) => {
@@ -1987,7 +2009,10 @@
       </article>`;
     }).join('') : searchEmptyMarkup();
 
-    const unlockableStates = unlockableDisplayOrder.map(entry => getUnlockableEntryState(entry, ownedCars));
+    const unlockableStates = [
+      ...unlockableDisplayOrder.map(entry => getUnlockableEntryState(entry, ownedCars)),
+      ...getHiddenUnlockableStates()
+    ];
     const unlockableCounts = {
       open: unlockableStates.filter(item => item.status === 'open').length,
       ready: unlockableStates.filter(item => item.status === 'ready').length,
