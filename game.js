@@ -392,14 +392,20 @@
     lemansMalboro: makeCar('LEMANS MALBORO', 'lemans_malboro', 33, 120),
     megayacht: makeCar('MEGAYACHT', 'megayacht', 34, 130),
     pRacer: makeCar('P. RACER', 'p_racer', 35, 130),
+    zenjobTrain: makeCar('ZENJOB TRAIN', 'zenjob_train', 36, 0, 'zenjobRosterMegayacht'),
+    evilSkyboat: makeCar('EVIL SKYBOAT', 'evil_skyboat', 38, 0, 'pRacer1500'),
     chromeUfo: makeCar('CHROME UFO', 'chrome_ufo', 42, 150),
     chromeheartsPj: makeCar('CHROMEHEARTS PJ', 'chromehearts_pj', 45, 170),
+    bigDilfMobil: makeCar('BIG DILF MOBIL', 'big_dilf_mobil', 48, 0, 'chromeheartsPjBigDilf2000'),
+    supremeCarry: makeCar('SUPREME CARRY', 'supreme_carry', 55, 0, 'greekMomChromeUfo1500'),
     fighterJet: makeCar('FIGHTER JET', 'fighter_jet', 60, 250),
     speedboatRockets: makeCar('SPEEDBOAT "ROCKETS"', 'speedboat_rockets', 61, 200, '', '#b3262d', { goldCost: 8000, premiumDualCost: true }),
     diamondPj: makeCar('DIAMOND PJ', 'diamond_pj', 63, 200, '', '#d9dde5', { goldCost: 12000, premiumDualCost: true }),
+    diamondFighterjet: makeCar('DIAMOND FIGHTERJET', 'diamond_fighterjet', 64, 0, 'diamondPj1300'),
     xWing: makeCar('X-WING', 'x_wing', 65, 200, '', '#b8b2a4', { goldCost: 15000, premiumDualCost: true }),
     tumbler: makeCar('TUMBLER', 'tumbler', 67, 200, '', '#17191c', { goldCost: 15000, premiumDualCost: true }),
     theZep: makeCar('THE ZEP', 'the_zep', 72, 225, '', '#d9b46d', { goldCost: 20000, premiumDualCost: true }),
+    chestnutMobil: makeCar('CHESTNUT MOBIL', 'chestnut_mobil', 73, 0, 'theZepChestnut1000'),
     chromerushYacht: makeCar('CHROMERUSH YACHT', 'chromerush_yacht', 74, 500, '', '#d8c88f', { goldCost: 9000, premiumDualCost: true }),
     vflHelicopter: makeCar('VFL HELICOPTER', 'vfl_helicopter', 75, 600, '', '#1b4d86', { goldCost: 9500, premiumDualCost: true }),
     paganiJetfighter: makeCar('PAGANI JETFIGHTER', 'pagani_jetfighter', 77, 680, '', '#1a2b40', { goldCost: 9500, premiumDualCost: true }),
@@ -407,6 +413,7 @@
     spaceRari: makeCar('SPACE RARI', 'space_rari', 83, 750, '', '#17191c', { goldCost: 12000, premiumDualCost: true }),
     pasitoTunTun: makeCar('PASITO TUN TUN', 'pasito_tun_tun', 83, 770, '', '#ebe5dc', { goldCost: 13000, premiumDualCost: true }),
     johnnyDangBus: makeCar('JOHNNY DANG BUS', 'johnny_dang_bus', 85, 780, '', '#e94399', { goldCost: 13500, premiumDualCost: true }),
+    flyingEnzo: makeCar('FLYING ENZO', 'flying_enzo', 86, 0, 'spaceRari2000'),
     mansorySubmarine: makeCar('MANSORY SUBMARINE', 'mansory_submarine', 88, 780, '', '#1a1715', { goldCost: 14000, premiumDualCost: true }),
     flyingRimiboy: makeCar('FLYING RIMIBOY', 'flying_rimiboy', 90, 1, '', '#d7a739', { goldCost: 20000, premiumDualCost: true }),
     airShisha: makeCar('AIR SHISHA', 'air_shisha', 92, 780, '', '#c6c8c9', { goldCost: 14400, premiumDualCost: true }),
@@ -415,6 +422,9 @@
     frankMullerRide: makeCar('FRANK MULLER RIDE', 'frank_muller_ride', 99, 700, '', '#dcd4bd', { goldCost: 16000, premiumDualCost: true }),
     bigBird: makeCar('BIG BIRD', 'big_bird', 100, 750, '', '#5c4a30', { goldCost: 20000, premiumDualCost: true }),
     royalWagon: makeCar('ROYAL WAGON', 'royal_wagon', 110, 800, '', '#f1ede4', { goldCost: 25000, premiumDualCost: true, featured: true }),
+    airCheetah: makeCar('AIRCHEETAH', 'aircheetah', 120, 0, 'bigBird2700'),
+    theGoat: makeCar('THE GOAT', 'the_goat', 170, 0, 'royalWagon3000'),
+    theUltimateGoat: makeCar('THE ULTIMATE GOAT', 'the_ultimate_goat', 200, 0, 'theGoat3500'),
     bugattiMistral: makeCar('BUGATTI MISTRAL 1/1', 'bugatti_mistral', 28, 0, 'everyBugatti'),
     f1Ferrari: makeCar('F1 FERRARI', 'f1_ferrari', 30, 0, 'mythos1500'),
     batmobil: makeCar('BATMOBIL', 'batmobil', 40, 0, 'f1_1750'),
@@ -422,7 +432,9 @@
   };
   const carOrder = Object.keys(carSpecs);
   const purchasableCarOrder = carOrder.filter(type => !carSpecs[type].challenge);
-  const unlockableCarOrder = carOrder.filter(type => carSpecs[type].challenge);
+  const unlockableCarOrder = carOrder
+    .filter(type => carSpecs[type].challenge)
+    .sort((a, b) => carSpecs[a].boost - carSpecs[b].boost || carOrder.indexOf(a) - carOrder.indexOf(b));
   const goatReward = { name: 'GOAT', image: 'assets/unlock_goat.png' };
   const unlockableDisplayOrder = [
     'BIGMAX', 'PETE', 'DONR', 'VIVI', 'TONE', 'A2W', 'URCH', 'HUSTLAUI', 'BIENMACHINE', 'KRISTALL', 'MBEEZY', 'THERI', 'MICHA', 'MICHA MOMO',
@@ -883,10 +895,10 @@
 
   function getLeaderboardMove(row, rank, snapshot) {
     const previousRank = Number(snapshot?.[row?.player_id]);
-    if (!previousRank) return { symbol: '—', className: 'neutral', label: 'UNCHANGED' };
+    if (!previousRank) return null;
     if (rank < previousRank) return { symbol: '▲', className: 'up', label: isGerman() ? 'GESTIEGEN' : 'MOVED UP' };
     if (rank > previousRank) return { symbol: '▼', className: 'down', label: isGerman() ? 'GEFALLEN' : 'MOVED DOWN' };
-    return { symbol: '—', className: 'neutral', label: isGerman() ? 'GLEICH' : 'UNCHANGED' };
+    return null;
   }
 
   function getLeaderboardBadge(highscore) {
@@ -894,6 +906,34 @@
     if (scoreValue > 2500) return { label: 'GOAT', className: 'goat', title: 'GOAT Level' };
     if (scoreValue > 2000) return { label: 'GOLD', className: 'gold', title: 'GOLD Level' };
     return null;
+  }
+
+  function getLatestLeaderboardRowsByPlayer(rows = []) {
+    const players = new Map();
+    (Array.isArray(rows) ? rows : []).forEach(row => {
+      const cleanName = String(row?.player_name || '').trim();
+      const cleanId = String(row?.player_id || '').trim();
+      const playerKey = cleanName && cleanName.toUpperCase() !== 'PLAYER'
+        ? `name:${cleanName.toLowerCase()}`
+        : (cleanId ? `id:${cleanId}` : '');
+      if (!playerKey) return;
+      const current = players.get(playerKey);
+      const rowTime = new Date(row.updated_at || 0).getTime() || 0;
+      const currentTime = new Date(current?.updated_at || 0).getTime() || 0;
+      const merged = {
+        ...(current || row),
+        ...((rowTime >= currentTime) ? row : {}),
+        highscore: Math.max(Number(current?.highscore || 0), Number(row.highscore || 0)),
+        skins_owned: Math.max(Number(current?.skins_owned || 0), Number(row.skins_owned || 0)),
+        cars_owned: Math.max(Number(current?.cars_owned || 0), Number(row.cars_owned || 0))
+      };
+      players.set(playerKey, merged);
+    });
+    return [...players.values()].sort((a, b) => {
+      const bTime = new Date(b.updated_at || 0).getTime() || 0;
+      const aTime = new Date(a.updated_at || 0).getTime() || 0;
+      return bTime - aTime;
+    });
   }
 
   function setLeaderboardDeveloperMode(active) {
@@ -929,21 +969,23 @@
     list.innerHTML = rows.map((row, index) => {
       const progress = getLeaderboardProgressPercent(row.skins_owned, row.cars_owned);
       const rank = index + 1;
-      const move = developerMode ? { symbol: '—', className: 'neutral', label: '' } : getLeaderboardMove(row, rank, snapshot);
-      const badge = getLeaderboardBadge(row.highscore);
+      const move = developerMode ? null : getLeaderboardMove(row, rank, snapshot);
+      const badge = developerMode ? null : getLeaderboardBadge(row.highscore);
       const activityText = developerMode ? formatLeaderboardDate(row.updated_at) : formatLeaderboardActivityTag(row.updated_at);
+      const moveMarkup = move ? `<span class="leaderboard-move ${move.className}" aria-label="${move.label}">${move.symbol}</span>` : '';
       const badgeMarkup = badge ? `<span class="leaderboard-badge ${badge.className}" title="${badge.title}">${badge.label}</span>` : '';
       const activityMarkup = activityText ? `<small>${escapeHtml(activityText)}</small>` : '';
       const scoreMeta = developerMode
-        ? `${leaderboardLevels[row.level]?.label || row.level || 'LEVEL'} · ${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`
+        ? `${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`
         : `${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`;
+      const progressMarkup = developerMode ? '' : `<div class="leaderboard-progress-ring" style="--progress: ${progress}%"><span>${progress}%</span></div>`;
       return `
-        <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}${developerMode ? ' developer-view' : ''}">
-          <span class="leaderboard-move ${move.className}" aria-label="${move.label}">${move.symbol}</span>
+        <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}${developerMode ? ' developer-view' : ''}${!move && !developerMode ? ' no-rank-change' : ''}">
+          ${moveMarkup}
           <span class="leaderboard-rank">#${rank}</span>
           <div class="leaderboard-name"><span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong>${badgeMarkup}</span>${activityMarkup}</div>
           <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)}</small></div>
-          <div class="leaderboard-progress-ring" style="--progress: ${progress}%"><span>${progress}%</span></div>
+          ${progressMarkup}
         </article>
       `;
     }).join('');
@@ -965,7 +1007,8 @@
       const response = await fetch(url, { headers: getLeaderboardHeaders() });
       if (!response.ok) throw new Error('Leaderboard unavailable');
       const rows = await response.json();
-      renderLeaderboardRows(Array.isArray(rows) ? rows : [], { levelKey, developerMode: leaderboardDeveloperMode });
+      const leaderboardRows = leaderboardDeveloperMode ? getLatestLeaderboardRowsByPlayer(rows) : rows;
+      renderLeaderboardRows(Array.isArray(leaderboardRows) ? leaderboardRows : [], { levelKey, developerMode: leaderboardDeveloperMode });
       if (status) {
         status.textContent = leaderboardDeveloperMode
           ? `DEVELOPER MODE · ${isGerman() ? 'ALLE LEVEL · AKTIVITÄT' : 'ALL LEVELS · RECENT ACTIVITY'}`
@@ -1379,6 +1422,32 @@
       case 'mythos1500': return distanceState(getVehicleBestHighscore('ferrariMythos'), 1500, 'Reach 1500m with Ferrari Mythos', 'FERRARI MYTHOS');
       case 'f1_1750': return distanceState(getVehicleBestHighscore('f1Ferrari'), 1750, 'Reach 1750m with F1 Ferrari', 'F1 FERRARI');
       case 'drake2000': return distanceState(bestSkin('DRAKE'), 2000, 'Reach 2000m with DRAKE', 'DRAKE');
+      case 'zenjobRosterMegayacht': {
+        const skins = ['BASTI', 'BRIAN', 'ELLI', 'NESSI', 'MAG', 'MEB', 'ALI', 'BIG A', 'EMILY', 'HARBS', 'STEFFI', 'ELSA', 'ARMIN', 'PAT', 'EISERNE', 'VOSSBOSS', 'SCHNEIDER', 'JULES', 'KELLE', 'JR'];
+        const owned = skins.filter(ownsSkin).length;
+        return challengeState(
+          owned === skins.length && ownsCar('megayacht'),
+          'Collect BASTI, BRIAN, ELLI, NESSI, MAG, MEB, ALI, BIG A, EMILY, HARBS, STEFFI, ELSA, ARMIN, PAT, EISERNE, VOSSBOSS, SCHNEIDER, JULES, KELLE, JR and the Megayacht',
+          `${owned}/${skins.length} SKINS · MEGAYACHT ${ownsCar('megayacht') ? '✓' : '○'}`
+        );
+      }
+      case 'pRacer1500': return distanceState(getVehicleBestHighscore('pRacer'), 1500, 'Reach 1500m using the P. Racer', 'P. RACER');
+      case 'chromeheartsPjBigDilf2000': return challengeState(
+        ownsCar('chromeheartsPj') && getVehicleHighscore(0, 'chromeheartsPj') >= 2000,
+        'Unlock Chromehearts PJ and reach 2000m against Big Dilf',
+        `CHROMEHEARTS PJ ${ownsCar('chromeheartsPj') ? '✓' : '○'} · ${Math.min(getVehicleHighscore(0, 'chromeheartsPj'), 2000)}/2000m`
+      );
+      case 'greekMomChromeUfo1500': return distanceState(bestLoadout('GREEK MOM', 'chromeUfo'), 1500, 'Reach 1500m with GREEK MOM using the Chrome UFO', 'GREEK MOM + UFO');
+      case 'diamondPj1300': return distanceState(getVehicleBestHighscore('diamondPj'), 1300, 'Reach 1300m using the Diamond PJ', 'DIAMOND PJ');
+      case 'theZepChestnut1000': return challengeState(
+        ownsCar('theZep') && getVehicleHighscore(1, 'theZep') >= 1000,
+        'Unlock The Zep and reach 1000m against Chestnut',
+        `THE ZEP ${ownsCar('theZep') ? '✓' : '○'} · ${Math.min(getVehicleHighscore(1, 'theZep'), 1000)}/1000m`
+      );
+      case 'spaceRari2000': return distanceState(getVehicleBestHighscore('spaceRari'), 2000, 'Reach 2000m using the Space Rari', 'SPACE RARI');
+      case 'bigBird2700': return distanceState(getVehicleBestHighscore('bigBird'), 2700, 'Reach 2700m using Big Bird', 'BIG BIRD');
+      case 'royalWagon3000': return distanceState(getVehicleBestHighscore('royalWagon'), 3000, 'Reach 3000m using the Royal Wagon', 'ROYAL WAGON');
+      case 'theGoat3500': return distanceState(getVehicleBestHighscore('theGoat'), 3500, 'Reach 3500m using THE GOAT', 'THE GOAT');
       default: return challengeState(false, 'Challenge unavailable', 'LOCKED');
     }
   }
