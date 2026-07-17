@@ -309,7 +309,8 @@
     { name: 'RIMIBOY GOLD', image: 'assets/skin_rimiboy_gold.png', legCutRatio: .67, cost: 0, challenge: 'rimiboyGoldExact', hiddenUnlockable: true },
     { name: 'JG (ILOVEVRO)', image: 'assets/skin_jg_ilovevro.png', legCutRatio: .67, cost: 0, challenge: 'jgIlovevroExact', hiddenUnlockable: true },
     { name: 'BRI', image: 'assets/skin_bri.png', legCutRatio: .67, cost: 0, challenge: 'briExact', hiddenUnlockable: true },
-    { name: 'BIG EM', image: 'assets/skin_big_em.png', legCutRatio: .67, cost: 0, challenge: 'bigEmExact', hiddenUnlockable: true }
+    { name: 'BIG EM', image: 'assets/skin_big_em.png', legCutRatio: .67, cost: 0, challenge: 'bigEmExact', hiddenUnlockable: true },
+    { name: 'ANDREW', image: 'assets/skin_andrew.png', legCutRatio: .67, cost: 0, challenge: 'andrewExact', hiddenUnlockable: true }
   ];
 
   const opponents = [
@@ -1202,6 +1203,7 @@
       case 'jgIlovevroExact': return challengeState(hasExactFinish(1384) || hasExactFinish(1810), 'Finish a Run with exactly 1384m or 1810m', hasExactFinish(1384) ? '1384m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 EXACT 1384m OR 1810m FINISH');
       case 'briExact': return challengeState(hasExactFinish(78, skinIndex('GEORGE')) || hasExactFinish(1810), 'Finish a Run with exactly 78m with GEORGE or 1810m', hasExactFinish(78, skinIndex('GEORGE')) ? 'GEORGE 78m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 GEORGE EXACT 78m OR 1810m FINISH');
       case 'bigEmExact': return challengeState(hasExactFinish(94) || hasExactFinish(1810), 'Finish a Run with exactly 94m or 1810m', hasExactFinish(94) ? '94m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 EXACT 94m OR 1810m FINISH');
+      case 'andrewExact': return challengeState(hasExactFinish(852, skinIndex('BRIAN')) || hasExactFinish(1810), 'Finish a Run with exactly 852m with BRIAN or 1810m', hasExactFinish(852, skinIndex('BRIAN')) ? 'BRIAN 852m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 BRIAN EXACT 852m OR 1810m FINISH');
       case 'goldFabel500': return distanceState(getCharacterRoundBest('gold', skinIndex('FABEL')), 500, 'Collect 500 Coins in one Run with FABEL', 'COINS');
       case 'carspotterAllCars': return challengeState(getOwnedCars().length === carOrder.length, 'Collect every Car', `${getOwnedCars().length} / ${carOrder.length} CARS`);
       case 'phantom500': return distanceState(getVehicleBestHighscore('rollsPhantom'), 500, 'Reach 500m using Rolls Royce Phantom', 'PHANTOM');
