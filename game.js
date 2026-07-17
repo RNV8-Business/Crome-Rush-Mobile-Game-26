@@ -587,6 +587,7 @@
   let shopSearchTerm = '';
   let unlockableFilter = 'open';
   let activeLeaderboardLevel = 'big_dilf';
+  let leaderboardDeveloperMode = false;
   let leaderboardRefreshTimer = 0;
   let leaderboardIsLoading = false;
   let width = 390;
@@ -774,6 +775,7 @@
     if (!screens.shop?.classList.contains('hidden')) updateShop();
     if (!screens.opponents?.classList.contains('hidden')) updateOpponentHighscores();
     if (!screens.leaderboard?.classList.contains('hidden')) {
+      setLeaderboardDeveloperMode(leaderboardDeveloperMode);
       updateLeaderboardProfile();
       loadLeaderboard(activeLeaderboardLevel);
     }
@@ -849,13 +851,71 @@
     return isGerman() ? `VOR ${Math.round(hours / 24)} T` : `${Math.round(hours / 24)}D AGO`;
   }
 
+  function formatLeaderboardActivityTag(value) {
+    const time = new Date(value).getTime();
+    if (!time) return '';
+    const age = Date.now() - time;
+    if (age >= 0 && age <= 24 * 60 * 60 * 1000) return isGerman() ? 'HEUTE GESPIELT' : 'PLAYED TODAY';
+    return '';
+  }
+
   function getLeaderboardProgressPercent(skinsOwned = 0, carsOwned = 0) {
     const collected = Number(skinsOwned || 0) + Number(carsOwned || 0);
     const total = Math.max(1, getProgressCharacterTotal() + carOrder.length);
     return clamp(Math.round((collected / total) * 100), 0, 100);
   }
 
-  function renderLeaderboardRows(rows = []) {
+  function getLeaderboardRankSnapshot(levelKey) {
+    try {
+      return JSON.parse(localStorage.getItem(`chromeRush.leaderboard.ranks.${levelKey}`) || '{}') || {};
+    } catch { return {}; }
+  }
+
+  function saveLeaderboardRankSnapshot(levelKey, rows = []) {
+    try {
+      const snapshot = {};
+      rows.forEach((row, index) => {
+        if (row?.player_id) snapshot[row.player_id] = index + 1;
+      });
+      localStorage.setItem(`chromeRush.leaderboard.ranks.${levelKey}`, JSON.stringify(snapshot));
+    } catch { /* Ranking movement is a nice-to-have. */ }
+  }
+
+  function getLeaderboardMove(row, rank, snapshot) {
+    const previousRank = Number(snapshot?.[row?.player_id]);
+    if (!previousRank) return { symbol: '—', className: 'neutral', label: 'UNCHANGED' };
+    if (rank < previousRank) return { symbol: '▲', className: 'up', label: isGerman() ? 'GESTIEGEN' : 'MOVED UP' };
+    if (rank > previousRank) return { symbol: '▼', className: 'down', label: isGerman() ? 'GEFALLEN' : 'MOVED DOWN' };
+    return { symbol: '—', className: 'neutral', label: isGerman() ? 'GLEICH' : 'UNCHANGED' };
+  }
+
+  function getLeaderboardBadge(highscore) {
+    const scoreValue = Number(highscore || 0);
+    if (scoreValue > 2500) return { label: 'GOAT', className: 'goat', title: 'GOAT Level' };
+    if (scoreValue > 2000) return { label: 'GOLD', className: 'gold', title: 'GOLD Level' };
+    return null;
+  }
+
+  function setLeaderboardDeveloperMode(active) {
+    leaderboardDeveloperMode = Boolean(active);
+    screens.leaderboard?.classList.toggle('developer-mode', leaderboardDeveloperMode);
+    const button = $('#leaderboardDeveloperMode');
+    if (button) button.textContent = leaderboardDeveloperMode ? 'Exit Developer Mode' : 'Developer Mode';
+  }
+
+  function toggleLeaderboardDeveloperMode() {
+    if (leaderboardDeveloperMode) {
+      setLeaderboardDeveloperMode(false);
+      loadLeaderboard(activeLeaderboardLevel);
+      return;
+    }
+    const code = prompt(isGerman() ? 'Developer Code eingeben' : 'Enter developer code');
+    if (String(code || '').trim() !== '1810') return;
+    setLeaderboardDeveloperMode(true);
+    loadLeaderboard(activeLeaderboardLevel);
+  }
+
+  function renderLeaderboardRows(rows = [], options = {}) {
     const list = $('#leaderboardList');
     if (!list) return;
     if (!rows.length) {
@@ -863,33 +923,56 @@
       return;
     }
     const ownId = getLeaderboardPlayerId();
+    const levelKey = options.levelKey || activeLeaderboardLevel;
+    const developerMode = Boolean(options.developerMode);
+    const snapshot = developerMode ? {} : getLeaderboardRankSnapshot(levelKey);
     list.innerHTML = rows.map((row, index) => {
       const progress = getLeaderboardProgressPercent(row.skins_owned, row.cars_owned);
+      const rank = index + 1;
+      const move = developerMode ? { symbol: '—', className: 'neutral', label: '' } : getLeaderboardMove(row, rank, snapshot);
+      const badge = getLeaderboardBadge(row.highscore);
+      const activityText = developerMode ? formatLeaderboardDate(row.updated_at) : formatLeaderboardActivityTag(row.updated_at);
+      const badgeMarkup = badge ? `<span class="leaderboard-badge ${badge.className}" title="${badge.title}">${badge.label}</span>` : '';
+      const activityMarkup = activityText ? `<small>${escapeHtml(activityText)}</small>` : '';
+      const scoreMeta = developerMode
+        ? `${leaderboardLevels[row.level]?.label || row.level || 'LEVEL'} · ${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`
+        : `${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`;
       return `
-        <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}">
-          <span class="leaderboard-rank">#${index + 1}</span>
-          <div class="leaderboard-name"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong><small>${formatLeaderboardDate(row.updated_at)}</small></div>
-          <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS</small></div>
+        <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}${developerMode ? ' developer-view' : ''}">
+          <span class="leaderboard-move ${move.className}" aria-label="${move.label}">${move.symbol}</span>
+          <span class="leaderboard-rank">#${rank}</span>
+          <div class="leaderboard-name"><span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong>${badgeMarkup}</span>${activityMarkup}</div>
+          <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)}</small></div>
           <div class="leaderboard-progress-ring" style="--progress: ${progress}%"><span>${progress}%</span></div>
         </article>
       `;
     }).join('');
+    if (!developerMode) saveLeaderboardRankSnapshot(levelKey, rows);
   }
 
   async function loadLeaderboard(levelKey = activeLeaderboardLevel) {
-    if (leaderboardIsLoading) return;
+    if (leaderboardIsLoading) {
+      setTimeout(() => loadLeaderboard(levelKey), 120);
+      return;
+    }
     leaderboardIsLoading = true;
     const status = $('#leaderboardStatus');
-    if (status) status.textContent = t('loading');
+    if (status) status.textContent = leaderboardDeveloperMode ? 'DEVELOPER MODE · LÄDT...' : t('loading');
     try {
-      const url = `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc`;
+      const url = leaderboardDeveloperMode
+        ? `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?select=player_id,player_name,level,highscore,skins_owned,cars_owned,updated_at&order=updated_at.desc`
+        : `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,level,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc`;
       const response = await fetch(url, { headers: getLeaderboardHeaders() });
       if (!response.ok) throw new Error('Leaderboard unavailable');
       const rows = await response.json();
-      renderLeaderboardRows(Array.isArray(rows) ? rows : []);
-      if (status) status.textContent = `${leaderboardLevels[levelKey]?.label || 'LEVEL'} · ${isGerman() ? 'ALLE SPIELER' : 'ALL PLAYERS'}`;
+      renderLeaderboardRows(Array.isArray(rows) ? rows : [], { levelKey, developerMode: leaderboardDeveloperMode });
+      if (status) {
+        status.textContent = leaderboardDeveloperMode
+          ? `DEVELOPER MODE · ${isGerman() ? 'ALLE LEVEL · AKTIVITÄT' : 'ALL LEVELS · RECENT ACTIVITY'}`
+          : `${leaderboardLevels[levelKey]?.label || 'LEVEL'} · ${isGerman() ? 'ALLE SPIELER' : 'ALL PLAYERS'}`;
+      }
     } catch {
-      renderLeaderboardRows([]);
+      renderLeaderboardRows([], { levelKey, developerMode: leaderboardDeveloperMode });
       if (status) status.textContent = t('offline');
     } finally {
       leaderboardIsLoading = false;
@@ -3911,6 +3994,10 @@
     askForLeaderboardName(true);
     syncLeaderboardScores();
     loadLeaderboard(activeLeaderboardLevel);
+    pop(event.currentTarget);
+  });
+  $('#leaderboardDeveloperMode')?.addEventListener('click', event => {
+    toggleLeaderboardDeveloperMode();
     pop(event.currentTarget);
   });
   document.querySelectorAll('[data-leaderboard-level]').forEach(button => button.addEventListener('click', () => {
