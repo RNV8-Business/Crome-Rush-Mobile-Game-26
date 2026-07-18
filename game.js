@@ -305,6 +305,36 @@
     { name: 'EINSTEIN', image: 'assets/unlock_einstein.png', cost: 0, challenge: 'einstein1300', celebrity: true },
     { name: 'LEO', image: 'assets/unlock_leo.png', cost: 0, challenge: 'leo1400', celebrity: true },
     { name: 'USAIN', image: 'assets/unlock_usain.png', cost: 0, challenge: 'usain2000', celebrity: true },
+    { name: 'JOHANNA', image: 'assets/unlock_johanna.png', cost: 0, challenge: 'johannaBenni500' },
+    { name: 'EMILY', image: 'assets/unlock_emily.png', cost: 0, challenge: 'emilyArmin600' },
+    { name: 'CLAIRE', image: 'assets/unlock_claire.png', cost: 0, challenge: 'claireJules500' },
+    { name: 'ARMIN', image: 'assets/unlock_armin.png', cost: 0, challenge: 'arminExact100Basti' },
+    { name: 'HARVEY', image: 'assets/unlock_harvey.png', cost: 0, challenge: 'harvey2000', celebrity: true },
+    { name: 'CORLEONE', image: 'assets/unlock_corleone.png', cost: 0, challenge: 'corleoneCars70', celebrity: true },
+    { name: 'JENNY', image: 'assets/unlock_jenny.png', cost: 0, challenge: 'jennyExact25Elli' },
+    { name: 'ANSGAR', image: 'assets/unlock_ansgar.png', cost: 0, challenge: 'ansgarExact170' },
+    { name: 'HARBS', image: 'assets/unlock_harbs.png', cost: 0, challenge: 'harbsExact140' },
+    { name: 'ORESTIS', image: 'assets/unlock_orestis.png', cost: 0, challenge: 'orestisMixaelaGeorge50' },
+    { name: 'JR', image: 'assets/unlock_jr.png', cost: 0, challenge: 'jrExact150Elli' },
+    { name: 'VOSSBOSS', image: 'assets/unlock_vossboss.png', cost: 0, challenge: 'vossbossEiserneExact20' },
+    { name: 'EISERNE', image: 'assets/unlock_eiserne.png', cost: 0, challenge: 'eiserneNessi300' },
+    { name: 'ELSA', image: 'assets/unlock_elsa.png', cost: 0, challenge: 'elsaGoldSchneider200' },
+    { name: 'PAT', image: 'assets/unlock_pat.png', cost: 0, challenge: 'patBastiSteffi' },
+    { name: 'JEREMY', image: 'assets/unlock_jeremy.png', cost: 0, challenge: 'jeremyExact150Chestnut', celebrity: true },
+    { name: 'KELLE', image: 'assets/unlock_kelle.png', cost: 0, challenge: 'kelleHarbs400' },
+    { name: 'TYSON', image: 'assets/unlock_tyson.png', cost: 0, challenge: 'tyson2500', celebrity: true },
+    { name: 'MIXAELA', image: 'assets/unlock_mixaela.png', cost: 0, challenge: 'mixaelaGeorge800' },
+    { name: 'SCHNEIDER', image: 'assets/unlock_schneider.png', cost: 0, challenge: 'schneiderRosterBrian67' },
+    { name: 'JULES', image: 'assets/unlock_jules.png', cost: 0, challenge: 'julesGold350' },
+    { name: 'LAMELO', image: 'assets/unlock_lamelo.png', cost: 0, challenge: 'lameloChestnut400', celebrity: true },
+    { name: 'LAVAR', image: 'assets/unlock_lavar.png', cost: 0, challenge: 'lavarLamelo1500', celebrity: true },
+    { name: 'VIRGIL', image: 'assets/unlock_virgil.png', cost: 0, challenge: 'virgil1700', celebrity: true },
+    { name: 'BIG DILF', image: 'assets/unlock_big_dilf.png', cost: 0, challenge: 'bigDilf2000', celebrity: true },
+    { name: 'SCARFACE', image: 'assets/unlock_scarface.png', cost: 0, challenge: 'scarfaceCars50', celebrity: true },
+    { name: 'STEFFI', image: 'assets/unlock_steffi.png', cost: 0, challenge: 'steffiBasti500' },
+    { name: 'CHESTNUT', image: 'assets/unlock_chestnut.png', cost: 0, challenge: 'chestnut1000', celebrity: true },
+    { name: 'OLI', image: 'assets/unlock_oli.png', cost: 0, challenge: 'oliHennessyR9_15', celebrity: true },
+    { name: 'UNDERTAKER', image: 'assets/unlock_undertaker.png', cost: 0, challenge: 'undertaker3000', celebrity: true },
     { name: 'BUBBLEPAT GOLD', image: 'assets/skin_bubblepat_gold.png', legCutRatio: .67, cost: 0, challenge: 'bubblepatGoldExact', hiddenUnlockable: true },
     { name: 'RIMIBOY GOLD', image: 'assets/skin_rimiboy_gold.png', legCutRatio: .67, cost: 0, challenge: 'rimiboyGoldExact', hiddenUnlockable: true },
     { name: 'JG (ILOVEVRO)', image: 'assets/skin_jg_ilovevro.png', legCutRatio: .67, cost: 0, challenge: 'jgIlovevroExact', hiddenUnlockable: true },
@@ -438,9 +468,11 @@
   const goatReward = { name: 'GOAT', image: 'assets/unlock_goat.png' };
   const unlockableDisplayOrder = [
     'BIGMAX', 'PETE', 'DONR', 'VIVI', 'TONE', 'A2W', 'URCH', 'HUSTLAUI', 'BIENMACHINE', 'KRISTALL', 'MBEEZY', 'THERI', 'MICHA', 'MICHA MOMO',
-    'SAWA', 'BECCA', 'MARK', 'LARA', 'DRE', 'BASO', 'GREEK MOM', 'RAV', 'KVK', 'ELKE', 'BENNI', 'PAUL', 'LEHMANN', 'RIM', 'BASTI', 'BRIAN', 'ELLI',
-    'MAG', 'MEB', 'ALI', 'BIG A', 'PUYAN', 'JERRY', 'CARSPOTTER', 'OBAMA', 'MUTTI', 'HARDEN', 'SGA', 'YE', 'BIANCA', 'R9', 'NEYMAR', 'YOUNG CRIS', 'CR7', 'DRAKE',
-    'SEXYYRED', '6IX9INE', 'SPEED', 'HARALD', 'ELON', 'KIM', 'OPRAH', 'EINSTEIN', 'LEO', 'ESCOBAR', 'MARADONNA', 'JA', 'USAIN',
+    'SAWA', 'BECCA', 'MARK', 'LARA', 'DRE', 'BASO', 'GREEK MOM', 'RAV', 'MIXAELA', 'ORESTIS', 'KVK', 'ELKE', 'BENNI', 'JOHANNA', 'LEHMANN', 'RIM',
+    'BASTI', 'BRIAN', 'ELLI', 'JR', 'ARMIN', 'EMILY', 'ELSA', 'SCHNEIDER', 'EISERNE', 'VOSSBOSS', 'STEFFI', 'PAT', 'MEB', 'ALI', 'MAG', 'BIG A', 'HARBS',
+    'KELLE', 'JULES', 'CLAIRE', 'JENNY', 'ANSGAR', 'PUYAN', 'JERRY', 'PAUL', 'JA', 'BIG DILF', 'CHESTNUT', 'OBAMA', 'MUTTI', 'HARDEN', 'SGA', 'LAMELO', 'LAVAR', 'YE',
+    'BIANCA', 'R9', 'NEYMAR', 'YOUNG CRIS', 'CR7', 'OLI', 'JEREMY', 'SCARFACE', 'CORLEONE', 'DRAKE', 'SEXYYRED', '6IX9INE', 'SPEED', 'HARALD', 'ELON', 'KIM',
+    'OPRAH', 'EINSTEIN', 'VIRGIL', 'LEO', 'HARVEY', 'ESCOBAR', 'MARADONNA', 'USAIN', 'TYSON', 'UNDERTAKER', 'CARSPOTTER',
     ...unlockableCarOrder.map(type => `car:${type}`), 'goat'
   ];
 
@@ -1268,6 +1300,7 @@
     try { localStorage.setItem('mand.shoesBottlesRun.20', '1'); } catch { /* Private mode. */ }
   }
   const distanceState = (value, target, text, suffix = '') => challengeState(value >= target, text, `${Math.min(value, target)} / ${target}m${suffix ? ` · ${suffix}` : ''}`);
+  const countState = (value, target, text, suffix = '') => challengeState(value >= target, text, `${Math.min(value, target)} / ${target}${suffix ? ` · ${suffix}` : ''}`);
   const collectionState = (skins, cars, text) => {
     const items = [...skins.map(name => [name, ownsSkin(name)]), ...cars.map(type => [carSpecs[type]?.name || type, ownsCar(type)])];
     return challengeState(items.every(([, owned]) => owned), text, items.map(([name, owned]) => `${name} ${owned ? '✓' : '○'}`).join(' · '));
@@ -1281,7 +1314,7 @@
     const bestLoadout = (name, type, opponent = -1) => opponent < 0 ? getLoadoutBestHighscore(skinIndex(name), type) : getLoadoutHighscore(opponent, skinIndex(name), type);
     switch (key) {
       case 'momPete250': return challengeState(bestSkin('MOM') >= 250 && bestSkin('PETE') >= 250 && bestSkin('ELKE') >= 500, 'Reach 250m with MOM, 250m with PETE and 500m with ELKE', `MOM ${Math.min(bestSkin('MOM'), 250)}/250m · PETE ${Math.min(bestSkin('PETE'), 250)}/250m · ELKE ${Math.min(bestSkin('ELKE'), 500)}/500m`);
-      case 'blackBigDilf10': return distanceState(getRoundBest('black', 0), 10, 'Collect 10 Black Coins in one Run against Big Dilf', 'BLACK COINS');
+      case 'blackBigDilf10': return countState(getRoundBest('black', 0), 10, 'Collect 10 Black Coins in one Run against Big Dilf', 'BLACK COINS');
       case 'a2wDonr': return collectionState(['A2W', 'DONR'], [], 'Collect A2W and DONR');
       case 'mbeezy1000': return distanceState(bestSkin('MBEEZY'), 1000, 'Reach 1000m with MBEEZY', 'MBEEZY');
       case 'viviFabel': return collectionState(['FABEL', 'VIVI'], [], 'Collect FABEL and VIVI');
@@ -1305,9 +1338,9 @@
       case 'greekMomRav1000': return distanceState(bestSkin('RAV'), 1000, 'Reach 1000m with RAV', 'RAV');
       case 'peteMercedes300sl500': return distanceState(getVehicleBestHighscore('mercedes300sl'), 500, 'Reach 500m using the Mercedes 300SL', 'MERCEDES 300SL');
       case 'vivi650': return distanceState(getBestHighscore(), 650, 'Reach 650m');
-      case 'tunTun15': return distanceState(Math.max(...opponents.map((_, i) => getRoundBest('tuntun', i))), 15, 'Collect 15 Shoes in one Run', 'SHOES');
-      case 'tunTun25': return distanceState(Math.max(...opponents.map((_, i) => getRoundBest('tuntun', i))), 25, 'Collect 25 Shoes in one Run', 'SHOES');
-      case 'hennessyVro20': return distanceState(getCharacterRoundBest('hennessy', skinIndex('VRO')), 20, 'Collect 20 Hennessy Bottles in one Run using VRO', 'HENNESSY');
+      case 'tunTun15': return countState(Math.max(...opponents.map((_, i) => getRoundBest('tuntun', i))), 15, 'Collect 15 Shoes in one Run', 'SHOES');
+      case 'tunTun25': return countState(Math.max(...opponents.map((_, i) => getRoundBest('tuntun', i))), 25, 'Collect 25 Shoes in one Run', 'SHOES');
+      case 'hennessyVro20': return countState(getCharacterRoundBest('hennessy', skinIndex('VRO')), 20, 'Collect 20 Hennessy Bottles in one Run using VRO', 'HENNESSY');
       case 'georgeMx5_300': return distanceState(bestLoadout('GEORGE', 'mx5'), 300, 'Reach 300m with GEORGE using Mazda MX5', 'GEORGE + MX5');
       case 'score800': return distanceState(getBestHighscore(), 800, 'Reach 800m');
       case 'ebikeChestnut300': return distanceState(getVehicleHighscore(1, 'eBike'), 125, 'Reach 125m using the E-Bike against Chestnut', 'E-BIKE');
@@ -1317,7 +1350,7 @@
       case 'lehmannExact200': return challengeState(hasExactFinish(200, skinIndex('PATTY')), 'Finish a Run with exactly 200m with Patty', hasExactFinish(200, skinIndex('PATTY')) ? 'PATTY 200m FINISH ✓' : '0 / 1 PATTY EXACT 200m FINISH');
       case 'rimLehmann850': return distanceState(bestSkin('LEHMANN'), 850, 'Reach 850m with LEHMANN', 'LEHMANN');
       case 'cars15Brian': return challengeState(ownsSkin('BRIAN') && getBestHighscore() >= 800, 'Collect BRIAN and reach 800m', `BRIAN ${ownsSkin('BRIAN') ? '✓' : '○'} · ${Math.min(getBestHighscore(), 800)}/800m`);
-      case 'goldRun400': return distanceState(Math.max(...opponents.map((_, i) => getRoundBest('gold', i))), 400, 'Collect 400 Coins in one Run', 'COINS');
+      case 'goldRun400': return countState(Math.max(...opponents.map((_, i) => getRoundBest('gold', i))), 400, 'Collect 400 Coins in one Run', 'COINS');
       case 'basti250Brian500': return challengeState(bestSkin('BASTI') >= 250 && bestSkin('BRIAN') >= 500, 'Reach 250m with BASTI and 500m with BRIAN', `BASTI ${Math.min(bestSkin('BASTI'), 250)}/250m · BRIAN ${Math.min(bestSkin('BRIAN'), 500)}/500m`);
       case 'magNessi500': return distanceState(bestSkin('NESSI'), 500, 'Reach 500m with NESSI', 'NESSI');
       case 'mebAli1000': return distanceState(bestSkin('ALI'), 1000, 'Reach 1000m with ALI', 'ALI');
@@ -1330,13 +1363,13 @@
       case 'briExact': return challengeState(hasExactFinish(78, skinIndex('GEORGE')) || hasExactFinish(1810), 'Finish a Run with exactly 78m with GEORGE or 1810m', hasExactFinish(78, skinIndex('GEORGE')) ? 'GEORGE 78m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 GEORGE EXACT 78m OR 1810m FINISH');
       case 'bigEmExact': return challengeState(hasExactFinish(94) || hasExactFinish(1810), 'Finish a Run with exactly 94m or 1810m', hasExactFinish(94) ? '94m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 EXACT 94m OR 1810m FINISH');
       case 'andrewExact': return challengeState(hasExactFinish(852, skinIndex('BRIAN')) || hasExactFinish(1810), 'Finish a Run with exactly 852m with BRIAN or 1810m', hasExactFinish(852, skinIndex('BRIAN')) ? 'BRIAN 852m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 BRIAN EXACT 852m OR 1810m FINISH');
-      case 'goldFabel500': return distanceState(getCharacterRoundBest('gold', skinIndex('FABEL')), 500, 'Collect 500 Coins in one Run with FABEL', 'COINS');
+      case 'goldFabel500': return countState(getCharacterRoundBest('gold', skinIndex('FABEL')), 500, 'Collect 500 Coins in one Run with FABEL', 'COINS');
       case 'carspotterAllCars': return challengeState(getOwnedCars().length === carOrder.length, 'Collect every Car', `${getOwnedCars().length} / ${carOrder.length} CARS`);
       case 'phantom500': return distanceState(getVehicleBestHighscore('rollsPhantom'), 500, 'Reach 500m using Rolls Royce Phantom', 'PHANTOM');
       case 'obamaVeyron850': return distanceState(bestLoadout('OBAMA', 'bugattiVeyron'), 850, 'Reach 850m with OBAMA using Bugatti Veyron', 'OBAMA + VEYRON');
       case 'chestnut400': return distanceState(getHighscore(1), 300, 'Reach 300m against Chestnut');
       case 'phantomMansory': return collectionState([], ['rollsPhantom', 'mansoryGle'], 'Collect Rolls Royce Phantom and Mansory GLE');
-      case 'black50': return distanceState(getLifetimeBlackCoins(), 50, 'Collect 50 Black Coins', 'BLACK COINS');
+      case 'black50': return countState(getLifetimeBlackCoins(), 50, 'Collect 50 Black Coins', 'BLACK COINS');
       case 'yeMaybach': return collectionState(['YE'], ['maybachS'], 'Collect YE and Maybach S');
       case 'f50_400': return distanceState(getVehicleBestHighscore('f50'), 400, 'Reach 400m using Ferrari F50', 'FERRARI F50');
       case 'r9_750': return distanceState(bestSkin('R9'), 750, 'Reach 750m using R9', 'R9');
@@ -1352,10 +1385,45 @@
       case 'oprahShoesBottles20': return challengeState(hasShoesBottlesRun(20), 'Collect 20 Shoes and 20 Bottles in one Run', hasShoesBottlesRun(20) ? '20 SHOES + 20 BOTTLES ✓' : `${Math.min(runTunTuns, 20)}/20 SHOES · ${Math.min(hennessyCount, 20)}/20 BOTTLES`);
       case 'einstein1300': return distanceState(getBestHighscore(), 1300, 'Reach 1300m');
       case 'leo1400': return distanceState(getBestHighscore(), 1400, 'Reach 1400m');
-      case 'goldRun800': return distanceState(Math.max(...opponents.map((_, i) => getRoundBest('gold', i))), 800, 'Collect 800 Gold Coins in one Run', 'COINS');
+      case 'goldRun800': return countState(Math.max(...opponents.map((_, i) => getRoundBest('gold', i))), 800, 'Collect 800 Gold Coins in one Run', 'COINS');
       case 'brian1250': return distanceState(bestSkin('BRIAN'), 1250, 'Reach 1250m with BRIAN', 'BRIAN');
       case 'jaguar500': return distanceState(getVehicleBestHighscore('jaguarXj220'), 500, 'Reach 500m with Jaguar XJ220', 'JAGUAR XJ220');
       case 'usain2000': return distanceState(getBestHighscore(), 2000, 'Reach 2000m');
+      case 'johannaBenni500': return distanceState(bestSkin('BENNI'), 500, 'Reach 500m with BENNI', 'BENNI');
+      case 'emilyArmin600': return distanceState(bestSkin('ARMIN'), 600, 'Reach 600m with ARMIN', 'ARMIN');
+      case 'claireJules500': return distanceState(bestSkin('JULES'), 500, 'Reach 500m with JULES', 'JULES');
+      case 'arminExact100Basti': return challengeState(hasExactFinish(100, skinIndex('BASTI')), 'Finish a Run with exactly 100m with BASTI', hasExactFinish(100, skinIndex('BASTI')) ? 'BASTI 100m FINISH ✓' : '0 / 1 BASTI EXACT 100m FINISH');
+      case 'harvey2000': return distanceState(getBestHighscore(), 2000, 'Reach 2000m');
+      case 'corleoneCars70': return challengeState(getOwnedCars().length >= 70, 'Collect 70 Cars', `${Math.min(getOwnedCars().length, 70)} / 70 CARS`);
+      case 'jennyExact25Elli': return challengeState(hasExactFinish(25, skinIndex('ELLI')), 'Finish a Run with exactly 25m with ELLI', hasExactFinish(25, skinIndex('ELLI')) ? 'ELLI 25m FINISH ✓' : '0 / 1 ELLI EXACT 25m FINISH');
+      case 'harbsExact140': return challengeState(hasExactFinish(140), 'Finish a Run with exactly 140m', hasExactFinish(140) ? '140m FINISH ✓' : '0 / 1 EXACT 140m FINISH');
+      case 'orestisMixaelaGeorge50': return challengeState(ownsSkin('MIXAELA') && hasExactFinish(50, skinIndex('GEORGE')), 'Collect MIXAELA and finish a Run with exactly 50m with GEORGE', `MIXAELA ${ownsSkin('MIXAELA') ? '✓' : '○'} · GEORGE 50m ${hasExactFinish(50, skinIndex('GEORGE')) ? '✓' : '○'}`);
+      case 'jrExact150Elli': return challengeState(hasExactFinish(150, skinIndex('ELLI')), 'Finish a Run with exactly 150m with ELLI', hasExactFinish(150, skinIndex('ELLI')) ? 'ELLI 150m FINISH ✓' : '0 / 1 ELLI EXACT 150m FINISH');
+      case 'vossbossEiserneExact20': return challengeState(ownsSkin('EISERNE') && hasExactFinish(20), 'Collect EISERNE and finish a Run with exactly 20m', `EISERNE ${ownsSkin('EISERNE') ? '✓' : '○'} · 20m FINISH ${hasExactFinish(20) ? '✓' : '○'}`);
+      case 'eiserneNessi300': return distanceState(bestSkin('NESSI'), 300, 'Reach 300m with NESSI', 'NESSI');
+      case 'elsaGoldSchneider200': return countState(getCharacterRoundBest('gold', skinIndex('SCHNEIDER')), 200, 'Collect 200 Coins in one Run with SCHNEIDER', 'COINS');
+      case 'patBastiSteffi': return collectionState(['BASTI', 'STEFFI'], [], 'Collect BASTI and STEFFI');
+      case 'jeremyExact150Chestnut': return challengeState(hasExactFinishOpponent(150, 1), 'Finish a Run with exactly 150m against Chestnut', hasExactFinishOpponent(150, 1) ? 'CHESTNUT 150m FINISH ✓' : '0 / 1 CHESTNUT EXACT 150m FINISH');
+      case 'kelleHarbs400': return distanceState(bestSkin('HARBS'), 400, 'Reach 400m with HARBS', 'HARBS');
+      case 'tyson2500': return distanceState(getBestHighscore(), 2500, 'Reach 2500m');
+      case 'mixaelaGeorge800': return distanceState(bestSkin('GEORGE'), 800, 'Reach 800m with GEORGE', 'GEORGE');
+      case 'schneiderRosterBrian67': {
+        const roster = ['ARMIN', 'BASTI', 'ELLI'];
+        const collected = roster.filter(ownsSkin).length;
+        const exact = hasExactFinish(67, skinIndex('BRIAN'));
+        return challengeState(collected === roster.length && exact, 'Collect ARMIN, BASTI, ELLI and finish a Run with exactly 67m with BRIAN', `${collected}/${roster.length} SKINS · BRIAN 67m ${exact ? '✓' : '○'}`);
+      }
+      case 'julesGold350': return countState(Math.max(...opponents.map((_, i) => getRoundBest('gold', i))), 350, 'Collect 350 Coins in one Run', 'COINS');
+      case 'lameloChestnut400': return distanceState(getHighscore(1), 400, 'Reach 400m against Chestnut');
+      case 'lavarLamelo1500': return distanceState(bestSkin('LAMELO'), 1500, 'Reach 1500m with LAMELO', 'LAMELO');
+      case 'virgil1700': return distanceState(getBestHighscore(), 1700, 'Reach 1700m');
+      case 'bigDilf2000': return distanceState(getHighscore(0), 2000, 'Reach 2000m against Big Dilf');
+      case 'scarfaceCars50': return challengeState(getOwnedCars().length >= 50, 'Collect 50 Cars', `${Math.min(getOwnedCars().length, 50)} / 50 CARS`);
+      case 'steffiBasti500': return distanceState(bestSkin('BASTI'), 500, 'Reach 500m with BASTI', 'BASTI');
+      case 'chestnut1000': return distanceState(getHighscore(1), 1000, 'Reach 1000m against Chestnut');
+      case 'oliHennessyR9_15': return countState(getCharacterRoundBest('hennessy', skinIndex('R9')), 15, 'Collect 15 Hennessy Bottles in one Run with R9', 'HENNESSY');
+      case 'undertaker3000': return distanceState(getBestHighscore(), 3000, 'Reach 3000m');
+      case 'ansgarExact170': return challengeState(hasExactFinish(170), 'Finish a Run with exactly 170m', hasExactFinish(170) ? '170m FINISH ✓' : '0 / 1 EXACT 170m FINISH');
       default: return challengeState(false, 'Challenge unavailable', 'LOCKED');
     }
   }
@@ -1372,7 +1440,7 @@
       case 'sgaHarald500': return challengeState(ownsSkin('SGA') && ownsSkin('HARALD') && getBestHighscore() >= 500, 'Collect SGA, HARALD and reach 500m with any Skin', `SGA ${ownsSkin('SGA') ? '✓' : '○'} · HARALD ${ownsSkin('HARALD') ? '✓' : '○'} · ${Math.min(getBestHighscore(), 500)}/500m`);
       case 'patty450': return distanceState(bestSkin('PATTY'), 450, 'Reach 450m with PATTY', 'PATTY');
       case 'bigmax250': return distanceState(bestSkin('BIGMAX'), 250, 'Reach 250m using BIGMAX', 'BIGMAX');
-      case 'goldEbBike50': return distanceState(Math.max(...characters.map((_, i) => getLoadoutRoundBest('gold', i, 'eBike'))), 50, 'Collect 50 Gold Coins in one Run using E-Bike', 'COINS');
+      case 'goldEbBike50': return countState(Math.max(...characters.map((_, i) => getLoadoutRoundBest('gold', i, 'eBike'))), 50, 'Collect 50 Gold Coins in one Run using E-Bike', 'COINS');
       case 'dre300': return distanceState(bestSkin('DRE'), 300, 'Reach 300m with DRE', 'DRE');
       case 'samScore450': return challengeState(ownsSkin('SAM') && getBestHighscore() >= 450, 'Collect SAM and reach 450m with any Skin', `SAM ${ownsSkin('SAM') ? '✓' : '○'} · ${Math.min(getBestHighscore(), 450)}/450m`);
       case 'score1000': return distanceState(getBestHighscore(), 1000, 'Reach 1000m');
@@ -1385,7 +1453,7 @@
       case 'bentleyHermesCollect': return collectionState([], ['fiatGucci', 'rollsPhantom', 'maybachS'], 'Collect Fiat 500 “Gucci”, Rolls Royce Phantom and Maybach S');
       case 'neymarR9': return collectionState(['NEYMAR', 'R9'], [], 'Collect NEYMAR and R9');
       case 'chestnut500': return distanceState(getHighscore(1), 150, 'Reach 150m against Chestnut');
-      case 'hennessyJa15': return distanceState(getLoadoutRoundBest('hennessy', skinIndex('JA'), 'lamboUrus'), 15, 'Catch 15 Hennessy Bottles with JA in one Run', 'HENNESSY');
+      case 'hennessyJa15': return countState(getCharacterRoundBest('hennessy', skinIndex('JA')), 15, 'Catch 15 Hennessy Bottles with JA in one Run using any Car', 'HENNESSY');
       case 'mercedesGle750': return distanceState(getVehicleBestHighscore('mercedesGle'), 750, 'Reach 750m with Mercedes GLE', 'MERCEDES GLE');
       case 'brabus6x6Collect': return challengeState(ownsCar('mansoryGle') && ownsSkin('RIM'), 'Collect Mansory GLE and RIM', `MANSORY GLE ${ownsCar('mansoryGle') ? '✓' : '○'} · RIM ${ownsSkin('RIM') ? '✓' : '○'}`);
       case 'sexyyred': return collectionState(['SEXYYRED'], [], 'Collect SEXYYRED');
@@ -1408,7 +1476,7 @@
         const cars = ['porsche911', 'carreraGT', 'porscheGt3', 'porscheGt1'];
         return challengeState(cars.every(ownsCar) && getHighscore(1) >= 700, 'Collect every Porsche Model and reach 700m against Chestnut', `${cars.filter(ownsCar).length}/${cars.length} PORSCHE · ${Math.min(getHighscore(1), 700)}/700m`);
       }
-      case 'blackRavStirling20': return distanceState(getLoadoutRoundBest('black', skinIndex('RAV'), 'slrStirling'), 20, 'Collect 20 Black Coins in one Run with RAV using SLR Stirling Moss', 'BLACK COINS');
+      case 'blackRavStirling20': return countState(getLoadoutRoundBest('black', skinIndex('RAV'), 'slrStirling'), 20, 'Collect 20 Black Coins in one Run with RAV using SLR Stirling Moss', 'BLACK COINS');
       case 'everyFerrari': {
         const cars = ['f40', 'f50', 'ferrari288', 'enzo', 'laferrari', 'f80', 'ferrariSp1'];
         return challengeState(cars.every(ownsCar), 'Collect every Ferrari', `${cars.filter(ownsCar).length} / ${cars.length} FERRARIS`);

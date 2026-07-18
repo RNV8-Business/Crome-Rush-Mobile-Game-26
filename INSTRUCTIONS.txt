@@ -22,7 +22,7 @@ PROGRESS
   best distance for challenge progress.
 
 CURRENT CONTENT
-- 50 Skins total: 10 regular and 40 challenge Skins.
+- 100 Skins total: 8 regular and 92 challenge Skins.
 - 49 Cars total: 21 regular and 28 challenge Cars.
 - The 25 newly added challenge Cars use separate side-view Shop art and top-view
   Game art. Their exact boosts and challenge requirements are shown in-game.
