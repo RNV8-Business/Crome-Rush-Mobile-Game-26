@@ -899,7 +899,7 @@
     const time = new Date(value).getTime();
     if (!time) return '';
     const age = Date.now() - time;
-    if (age >= 0 && age <= 24 * 60 * 60 * 1000) return isGerman() ? 'HEUTE GESPIELT' : 'PLAYED TODAY';
+    if (age >= 0 && age <= 48 * 60 * 60 * 1000) return isGerman() ? 'KÜRZLICH GESPIELT' : 'RECENTLY PLAYED';
     return '';
   }
 
