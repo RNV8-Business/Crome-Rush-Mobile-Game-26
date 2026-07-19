@@ -675,6 +675,8 @@
   let pickupFlash = 0;
   let nextMilestone = 100;
   let milestoneTimer = 0;
+  let suppressBounceSoundUntil = 0;
+  const activeFxOscillators = new Set();
   let blackCoinRewardCarry = 0;
   let bannerTimer = 0;
   let opponentHighscoreAtRunStart = 0;
@@ -895,18 +897,62 @@
     return isGerman() ? `VOR ${Math.round(hours / 24)} T` : `${Math.round(hours / 24)}D AGO`;
   }
 
-  function formatLeaderboardActivityTag(value) {
-    const time = new Date(value).getTime();
-    if (!time) return '';
-    const age = Date.now() - time;
-    if (age >= 0 && age <= 48 * 60 * 60 * 1000) return isGerman() ? 'KÜRZLICH GESPIELT' : 'RECENTLY PLAYED';
-    return '';
+  const leaderboardAvatarFiles = {
+    'MARK': 'MARK.png',
+    'PETE': 'PETE.png',
+    'BUBBLEPAT': 'BubblePat.png',
+    'HEIKE 💕': 'HEIKE 💕.png',
+    'ONKEL BRIAN': 'Onkel Brian.png',
+    'RIMIBOY': 'Rimiboy.png',
+    'BIGMAX': 'BigMax.png',
+    'LARA': 'LARA.png',
+    'BOSS': 'Boss.png',
+    'FABELINHO': 'Fabelinho.png',
+    'KVK': 'KVK.png',
+    'JERRY': 'Jerry.png',
+    'EISERNE': 'Eiserne.png',
+    'STEFFIX': 'Steffix.png',
+    'ANDRÉANE': 'Andréane.png',
+    'EM': 'Em.png',
+    'PAUL': 'Paul.png',
+    'JENNY': 'Jenny.png',
+    'VV': 'VV.png',
+    'ALI': 'Ali.png',
+    'VOSSBOSS': 'VossBoss.png',
+    'HUUB STEVENS': 'Huub Stevens.png',
+    'FREDDYL45': 'FreddyL45.png',
+    'FREDDELIBRE': 'FreddeLibre.png',
+    'TUKTAKKO': 'Tuktakko.png',
+    'MBEEZY': 'MBEEZY.png',
+    'MBEZZY': 'MBEZZY.png',
+    'ALEXIS': 'Alexis.png',
+    'ANSGAR': 'Ansgar.png',
+    'ANTI2WAVY': 'Anti2Wavy.png',
+    'MARC': 'Marc.png',
+    'BASTI': 'Basti.png',
+    'HENRYK': 'Henryk.png',
+    'OCN': 'Ocn.png',
+    'MAGGY': 'Maggy.png',
+    'BRI': 'bri.png',
+    'DIOP': 'Diop.png',
+    'BENNOS': 'Bennos.png',
+    'NOMBASO': 'Nombaso.png'
+  };
+
+  function getLeaderboardAvatar(playerName = '') {
+    const normalizedName = String(playerName).normalize('NFC').trim().replace(/\s+/g, ' ').toUpperCase();
+    const fileName = leaderboardAvatarFiles[normalizedName];
+    return fileName ? `assets/leaderboard_avatars/${encodeURIComponent(fileName)}` : '';
+  }
+
+  function getLeaderboardInitials(playerName = '') {
+    const words = String(playerName).trim().split(/\s+/).filter(Boolean);
+    return (words.slice(0, 2).map(word => word[0]).join('') || '?').toUpperCase();
   }
 
   function getLeaderboardProgressPercent(skinsOwned = 0, carsOwned = 0) {
     const collected = Number(skinsOwned || 0) + Number(carsOwned || 0);
-    const total = Math.max(1, getProgressCharacterTotal() + carOrder.length);
-    return clamp(Math.round((collected / total) * 100), 0, 100);
+    return clamp(Math.round((collected / 200) * 100), 0, 100);
   }
 
   function getLeaderboardRankSnapshot(levelKey) {
@@ -933,10 +979,11 @@
     return null;
   }
 
-  function getLeaderboardBadge(highscore) {
+  function getLeaderboardBadge(highscore, rank) {
     const scoreValue = Number(highscore || 0);
-    if (scoreValue > 2500) return { label: 'GOAT', className: 'goat', title: 'GOAT Level' };
-    if (scoreValue > 2000) return { label: 'GOLD', className: 'gold', title: 'GOLD Level' };
+    if (rank === 1) return { label: 'THE CHAMP', className: 'champ', title: 'Best Player in the Game' };
+    if (scoreValue >= 2500) return { label: 'GOAT LVL', className: 'goat', title: 'GOAT Level' };
+    if (scoreValue >= 2000) return { label: 'GOLD LVL', className: 'gold', title: 'GOLD Level' };
     return null;
   }
 
@@ -999,25 +1046,46 @@
     const developerMode = Boolean(options.developerMode);
     const snapshot = developerMode ? {} : getLeaderboardRankSnapshot(levelKey);
     list.innerHTML = rows.map((row, index) => {
-      const progress = getLeaderboardProgressPercent(row.skins_owned, row.cars_owned);
       const rank = index + 1;
       const move = developerMode ? null : getLeaderboardMove(row, rank, snapshot);
-      const badge = developerMode ? null : getLeaderboardBadge(row.highscore);
-      const activityText = developerMode ? formatLeaderboardDate(row.updated_at) : formatLeaderboardActivityTag(row.updated_at);
+      const badge = developerMode ? null : getLeaderboardBadge(row.highscore, rank);
       const moveMarkup = move ? `<span class="leaderboard-move ${move.className}" aria-label="${move.label}">${move.symbol}</span>` : '';
       const badgeMarkup = badge ? `<span class="leaderboard-badge ${badge.className}" title="${badge.title}">${badge.label}</span>` : '';
-      const activityMarkup = activityText ? `<small>${escapeHtml(activityText)}</small>` : '';
+      const avatarSrc = getLeaderboardAvatar(row.player_name);
+      const avatarCoreMarkup = avatarSrc
+        ? `<span class="leaderboard-avatar"><img src="${escapeHtml(avatarSrc)}" alt="" loading="lazy"></span>`
+        : `<span class="leaderboard-avatar fallback" aria-hidden="true">${escapeHtml(getLeaderboardInitials(row.player_name || 'PLAYER'))}</span>`;
+      const avatarMarkup = !developerMode && rank === 1
+        ? `<span class="leaderboard-avatar-wrap champion-avatar">${avatarCoreMarkup}<span class="leaderboard-avatar-crown" aria-label="Platz 1">♛</span></span>`
+        : avatarCoreMarkup;
+      const skinsOwned = Number(row.skins_owned || 0);
+      const carsOwned = Number(row.cars_owned || 0);
+      const collectionProgress = getLeaderboardProgressPercent(skinsOwned, carsOwned);
       const scoreMeta = developerMode
-        ? `${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`
-        : `${Number(row.skins_owned || 0)} SKINS · ${Number(row.cars_owned || 0)} CARS`;
-      const progressMarkup = developerMode ? '' : `<div class="leaderboard-progress-ring" style="--progress: ${progress}%"><span>${progress}%</span></div>`;
+        ? `${skinsOwned} SKINS · ${carsOwned} CARS`
+        : `${skinsOwned} SKINS · ${carsOwned} CARS`;
+      if (developerMode) {
+        const activityText = formatLeaderboardDate(row.updated_at);
+        const activityMarkup = activityText ? `<small>${escapeHtml(activityText)}</small>` : '';
+        return `
+          <article class="leaderboard-row developer-view${row.player_id === ownId ? ' current-player' : ''}">
+            <span class="leaderboard-rank">#${rank}</span>
+            ${avatarMarkup}
+            <div class="leaderboard-name"><span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong></span>${activityMarkup}</div>
+            <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)}</small></div>
+          </article>
+        `;
+      }
       return `
-        <article class="leaderboard-row${row.player_id === ownId ? ' current-player' : ''}${developerMode ? ' developer-view' : ''}${!move && !developerMode ? ' no-rank-change' : ''}">
+        <article class="leaderboard-row${rank === 1 ? ' champion' : ''}${row.player_id === ownId ? ' current-player' : ''}${!move ? ' no-rank-change' : ''}">
           ${moveMarkup}
           <span class="leaderboard-rank">#${rank}</span>
-          <div class="leaderboard-name"><span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong>${badgeMarkup}</span>${activityMarkup}</div>
-          <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)}</small></div>
-          ${progressMarkup}
+          <div class="leaderboard-name">
+            <span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong></span>
+            ${badgeMarkup ? `<span class="leaderboard-badge-row">${badgeMarkup}</span>` : ''}
+          </div>
+          <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)} · <span class="leaderboard-collection-progress">${collectionProgress}%</span></small></div>
+          ${avatarMarkup}
         </article>
       `;
     }).join('');
@@ -2861,6 +2929,7 @@
   function startGame() {
     ensureSoundContext();
     stopGame();
+    stopActiveFx();
     resize();
     elapsed = 0;
     paused = false;
@@ -3103,8 +3172,7 @@
       cameraLift = Math.max(cameraLift, platform.type === 'spring' ? 8 : 4);
       screenShake = Math.max(screenShake, clamp((impactSpeed - 620) / 125, 1.3, platform.type === 'spring' ? 5 : 3.4));
       emitLandingParticles(player.x, platform.y, platform.type);
-      playLandingSound(impactSpeed, platform.type);
-      playJumpSound(platform.type === 'spring');
+      playBounceSound(impactSpeed, platform.type);
       if (platform.type === 'fire' && !platform.exploding) {
         platform.exploding = true;
         burst(player.x, platform.y, '#ff6a22', 28);
@@ -3218,8 +3286,8 @@
       updateLoadoutRoundBest('tuntun', selectedCharacter, runCarType, runTunTuns);
       tunTunCountHud.querySelector('b').textContent = String(runTunTuns);
       superJumpUntil = elapsed + 5;
-      playShoeSound();
       if (runTunTuns % 10 === 0) playTunTunSound();
+      else playShoeSound();
       addFloatingText(shoe.x, shoe.y, `${t('doubleJump')} 5s!`, '#f4eee2');
       burst(shoe.x, shoe.y, '#f4eee2', 20);
       emitPickupRing(shoe.x, shoe.y, '#ffffff', 18);
@@ -3259,7 +3327,11 @@
   function updateRide(dt) {
     const distance = Math.min(ride.remaining, ride.speed * getPaceMultiplier() * dt);
     ride.remaining -= distance;
-    player.y -= distance;
+    const cameraLine = height * .41;
+    const playerTravel = Math.min(distance, Math.max(0, player.y - cameraLine));
+    player.y -= playerTravel;
+    const worldTravel = distance - playerTravel;
+    if (worldTravel > 0) shiftWorld(worldTravel, false);
     const metersReached = Math.min(ride.metersTotal, Math.floor(((ride.total - ride.remaining) / ride.total) * ride.metersTotal + .0001));
     if (metersReached > ride.metersAwarded) {
       const gained = metersReached - ride.metersAwarded;
@@ -3284,8 +3356,15 @@
     const desiredShift = cameraLine - player.y;
     let shift = desiredShift * (1 - Math.exp(-18 * dt));
     if (player.y < height * .17) shift = desiredShift;
-    player.y += shift;
-    player.previousY += shift;
+    shiftWorld(shift);
+  }
+
+  function shiftWorld(shift, movePlayer = true) {
+    if (!(shift > 0)) return;
+    if (movePlayer) {
+      player.y += shift;
+      player.previousY += shift;
+    }
     climbed += shift;
     platforms.forEach(platform => { platform.y += shift; });
     stars.forEach(star => { star.y += shift; });
@@ -3411,7 +3490,7 @@
       vy: (targetY - boss.y - 18 - .5 * gravity * travelTime * travelTime) / travelTime,
       rotation: 0, spin: random(-5, 5), dead: false
     });
-    playHennessySound();
+    playThrowSound('bottle');
   }
 
   function throwHotDog() {
@@ -3432,7 +3511,7 @@
       spin: random(-8, 8),
       dead: false
     });
-    playShoeSound();
+    playThrowSound('hotdog');
   }
 
   function activateHotDogHit() {
@@ -3542,6 +3621,7 @@
     hennessyHud.classList.add('hidden');
     screenShake = 9;
     stopGameplaySamples();
+    stopActiveFx();
     if (selectedOpponent === 0) playBigDilfLossSound();
     else if (selectedOpponent === 1) playChestnutGameOverSound();
     else playCrashSound();
@@ -4226,7 +4306,10 @@
   function setSfxEnabled(enabled) {
     sfxEnabled = !!enabled;
     try { localStorage.setItem('chromeRush.sfxEnabled', sfxEnabled ? '1' : '0'); } catch { /* Private mode. */ }
-    if (!sfxEnabled) stopGameplaySamples();
+    if (!sfxEnabled) {
+      stopGameplaySamples();
+      stopActiveFx();
+    }
     updateSfxToggle();
     if (sfxEnabled) playSynthTone({ frequency: 360, endFrequency: 540, duration: .1, volume: .025, type: 'triangle' });
   }
@@ -4270,7 +4353,7 @@
   }
 
   function playTunTunSound() {
-    playAudioSample(tunTunSound, 1);
+    playAudioSample(tunTunSound, 1, { cooldown: 1400 });
   }
 
   function playBigDilfLossSound() {
@@ -4311,6 +4394,31 @@
     return soundContext;
   }
 
+  function withRunningSoundContext(callback) {
+    if (!sfxEnabled) return;
+    const audioContext = ensureSoundContext();
+    if (!audioContext) return;
+    if (audioContext.state === 'running') {
+      callback(audioContext);
+      return;
+    }
+    audioContext.resume().then(() => {
+      if (sfxEnabled && audioContext.state === 'running') callback(audioContext);
+    }).catch(() => {});
+  }
+
+  function trackFxOscillator(oscillator) {
+    activeFxOscillators.add(oscillator);
+    oscillator.addEventListener('ended', () => activeFxOscillators.delete(oscillator), { once: true });
+  }
+
+  function stopActiveFx() {
+    activeFxOscillators.forEach(oscillator => {
+      try { oscillator.stop(); } catch { /* It may already have ended. */ }
+    });
+    activeFxOscillators.clear();
+  }
+
   function setupBackgroundMusicNode() {
     const audioContext = ensureSoundContext();
     if (!audioContext || backgroundMusicGain || !backgroundMusic) return backgroundMusicGain;
@@ -4346,41 +4454,41 @@
 
   function playSynthTone({ frequency = 220, endFrequency = frequency, duration = .12, volume = .04, type = 'sine', delay = 0 }) {
     if (!sfxEnabled) return;
-    const audioContext = ensureSoundContext();
-    if (!audioContext || audioContext.state !== 'running') return;
-    const start = audioContext.currentTime + delay;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, start);
-    oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endFrequency), start + duration);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(volume, start + Math.min(.018, duration * .2));
-    gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start(start);
-    oscillator.stop(start + duration + .02);
+    withRunningSoundContext(audioContext => {
+      const start = audioContext.currentTime + delay;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, start);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endFrequency), start + duration);
+      gain.gain.setValueAtTime(.0001, start);
+      gain.gain.exponentialRampToValueAtTime(volume, start + Math.min(.018, duration * .2));
+      gain.gain.exponentialRampToValueAtTime(.0001, start + duration);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      trackFxOscillator(oscillator);
+      oscillator.start(start);
+      oscillator.stop(start + duration + .02);
+    });
   }
 
-  function playLandingSound(impactSpeed, type) {
+  function playBounceSound(impactSpeed, type) {
+    if (performance.now() < suppressBounceSoundUntil || !canPlayFx('bounce', 70)) return;
     const force = clamp(impactSpeed / 1050, .45, 1);
     playSynthTone({ frequency: type === 'spring' ? 150 : 95, endFrequency: 48, duration: .09, volume: .032 * force, type: 'triangle' });
-    if (force > .72) playSynthTone({ frequency: 62, endFrequency: 38, duration: .13, volume: .022 * force, type: 'sine', delay: .012 });
-  }
-
-  function playJumpSound(spring = false) {
-    playSynthTone({ frequency: spring ? 330 : 205, endFrequency: spring ? 820 : 390, duration: spring ? .18 : .11, volume: spring ? .045 : .025, type: 'sine', delay: .025 });
+    playSynthTone({ frequency: type === 'spring' ? 330 : 205, endFrequency: type === 'spring' ? 820 : 390, duration: type === 'spring' ? .17 : .10, volume: type === 'spring' ? .04 : .021, type: 'sine', delay: .075 });
   }
 
   function playMilestoneSound(meters) {
     if (!canPlayFx('milestone', 850)) return;
+    suppressBounceSoundUntil = performance.now() + 380;
     const lift = Math.min(260, Math.floor(meters / 100) * 14);
     [0, .085, .17].forEach((delay, index) => playSynthTone({ frequency: 420 + lift + index * 150, endFrequency: 560 + lift + index * 170, duration: .16, volume: .045, type: 'triangle', delay }));
   }
 
   function playSpeedUpSound() {
     if (!canPlayFx('speedUp', 900)) return;
+    suppressBounceSoundUntil = performance.now() + 360;
     [0, .07].forEach((delay, index) => playSynthTone({ frequency: 260 + index * 180, endFrequency: 520 + index * 220, duration: .16, volume: .035, type: 'sawtooth', delay }));
   }
 
@@ -4392,92 +4500,40 @@
 
   function playCoinSound() {
     if (!canPlayFx('coin', 55)) return;
-    const audioContext = ensureSoundContext();
-    if (!audioContext || audioContext.state !== 'running') return;
-    const start = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'square';
-    oscillator.frequency.setValueAtTime(880, start);
-    oscillator.frequency.setValueAtTime(1320, start + .055);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(.11, start + .008);
-    gain.gain.exponentialRampToValueAtTime(.0001, start + .13);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start(start);
-    oscillator.stop(start + .14);
+    playSynthTone({ frequency: 880, endFrequency: 880, duration: .065, volume: .085, type: 'square' });
+    playSynthTone({ frequency: 1320, endFrequency: 1320, duration: .075, volume: .09, type: 'square', delay: .055 });
   }
 
   function playBlackCoinSound() {
     if (!canPlayFx('blackCoin', 115)) return;
-    const audioContext = ensureSoundContext();
-    if (!audioContext || audioContext.state !== 'running') return;
-    const start = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(330, start);
-    oscillator.frequency.exponentialRampToValueAtTime(990, start + .22);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(.13, start + .015);
-    gain.gain.exponentialRampToValueAtTime(.0001, start + .32);
-    oscillator.connect(gain); gain.connect(audioContext.destination);
-    oscillator.start(start); oscillator.stop(start + .34);
+    playSynthTone({ frequency: 330, endFrequency: 990, duration: .32, volume: .1, type: 'triangle' });
   }
 
   function playHennessySound() {
     if (!canPlayFx('hennessy', 360)) return;
-    const audioContext = ensureSoundContext();
-    if (!audioContext || audioContext.state !== 'running') return;
-    const start = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'sine';
-    oscillator.frequency.setValueAtTime(420, start);
-    oscillator.frequency.exponentialRampToValueAtTime(115, start + .48);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(.09, start + .025);
-    gain.gain.exponentialRampToValueAtTime(.0001, start + .55);
-    oscillator.connect(gain); gain.connect(audioContext.destination);
-    oscillator.start(start); oscillator.stop(start + .58);
+    playSynthTone({ frequency: 420, endFrequency: 115, duration: .55, volume: .075, type: 'sine' });
   }
 
   function playShoeSound() {
     if (!canPlayFx('shoe', 120)) return;
-    const audioContext = ensureSoundContext();
-    if (!audioContext || audioContext.state !== 'running') return;
-    const start = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.setValueAtTime(240, start);
-    oscillator.frequency.exponentialRampToValueAtTime(70, start + .2);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(.045, start + .01);
-    gain.gain.exponentialRampToValueAtTime(.0001, start + .23);
-    oscillator.connect(gain); gain.connect(audioContext.destination);
-    oscillator.start(start); oscillator.stop(start + .24);
+    playSynthTone({ frequency: 240, endFrequency: 70, duration: .23, volume: .04, type: 'sawtooth' });
+  }
+
+  function playThrowSound(kind = 'bottle') {
+    if (!canPlayFx(`throw:${kind}`, 180)) return;
+    playSynthTone({
+      frequency: kind === 'hotdog' ? 190 : 310,
+      endFrequency: kind === 'hotdog' ? 115 : 175,
+      duration: kind === 'hotdog' ? .16 : .12,
+      volume: .025,
+      type: 'triangle'
+    });
   }
 
   function playBoostSound(type) {
     if (!canPlayFx('boost', 400)) return;
-    const audioContext = ensureSoundContext();
-    if (!audioContext || audioContext.state !== 'running') return;
     const tier = Math.max(0, carOrder.indexOf(type));
-    const start = audioContext.currentTime;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = 'sawtooth';
-    oscillator.frequency.setValueAtTime(95 + tier * 18, start);
-    oscillator.frequency.exponentialRampToValueAtTime(430 + tier * 120, start + .38);
-    gain.gain.setValueAtTime(.0001, start);
-    gain.gain.exponentialRampToValueAtTime(.075, start + .025);
-    gain.gain.exponentialRampToValueAtTime(.0001, start + .46);
-    oscillator.connect(gain);
-    gain.connect(audioContext.destination);
-    oscillator.start(start);
-    oscillator.stop(start + .48);
+    playSynthTone({ frequency: 95 + tier * 18, endFrequency: 430 + tier * 120, duration: .46, volume: .065, type: 'sawtooth' });
   }
 
   async function startBackgroundMusic() {
