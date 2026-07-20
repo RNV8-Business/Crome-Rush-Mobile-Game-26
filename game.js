@@ -341,7 +341,7 @@
     { name: 'BRI', image: 'assets/skin_bri.png', legCutRatio: .67, cost: 0, challenge: 'briExact', hiddenUnlockable: true },
     { name: 'BIG EM', image: 'assets/skin_big_em.png', legCutRatio: .67, cost: 0, challenge: 'bigEmExact', hiddenUnlockable: true },
     { name: 'ANDREW', image: 'assets/skin_andrew.png', legCutRatio: .67, cost: 0, challenge: 'andrewExact', hiddenUnlockable: true },
-    { name: 'COLLIN', image: 'assets/skin_collin.png', legCutRatio: .67, cost: 0, challenge: 'collinExact', hiddenUnlockable: true }
+    { name: '25 CENT', image: 'assets/skin_collin.png', legCutRatio: .67, cost: 0, challenge: 'collinExact', hiddenUnlockable: true }
   ];
 
   const opponents = [
