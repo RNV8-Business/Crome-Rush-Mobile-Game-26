@@ -938,6 +938,8 @@
     'DIOP': 'Diop.png',
     'BENNOS': 'Bennos.png',
     'NOMBASO': 'Nombaso.png',
+    'JUJU': 'Juju.png',
+    'PAT': 'Pat.png',
     '25 CENT': '25 Cent.png'
   };
 
