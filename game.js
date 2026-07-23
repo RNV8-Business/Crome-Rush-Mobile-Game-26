@@ -940,6 +940,7 @@
     'NOMBASO': 'Nombaso.png',
     'JUJU': 'Juju.png',
     'PAT': 'Pat.png',
+    'GEORGE': 'George.png',
     '25 CENT': '25 Cent.png'
   };
 
