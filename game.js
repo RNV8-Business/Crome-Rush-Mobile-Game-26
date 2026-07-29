@@ -941,6 +941,7 @@
     'JUJU': 'Juju.png',
     'PAT': 'Pat.png',
     'GEORGE': 'George.png',
+    'VOLV0X': 'volvox.png',
     '25 CENT': '25 Cent.png'
   };
 
