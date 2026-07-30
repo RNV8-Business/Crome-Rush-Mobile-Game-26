@@ -942,11 +942,25 @@
     'PAT': 'Pat.png',
     'GEORGE': 'George.png',
     'VOLV0X': 'volvox.png',
+    'MYSTERY DILF': 'Mystery Dilf.png',
     '25 CENT': '25 Cent.png'
   };
 
+  const leaderboardDisplayNames = {
+    'PLAYER 6222': 'Mystery Dilf'
+  };
+
+  function normalizeLeaderboardName(playerName = '') {
+    return String(playerName).normalize('NFC').trim().replace(/\s+/g, ' ').toUpperCase();
+  }
+
+  function getLeaderboardDisplayName(playerName = '') {
+    const cleanName = String(playerName || '').normalize('NFC').trim().replace(/\s+/g, ' ');
+    return leaderboardDisplayNames[normalizeLeaderboardName(cleanName)] || cleanName || 'PLAYER';
+  }
+
   function getLeaderboardAvatar(playerName = '') {
-    const normalizedName = String(playerName).normalize('NFC').trim().replace(/\s+/g, ' ').toUpperCase();
+    const normalizedName = normalizeLeaderboardName(getLeaderboardDisplayName(playerName));
     const fileName = leaderboardAvatarFiles[normalizedName];
     return fileName ? `assets/leaderboard_avatars/${encodeURIComponent(fileName)}` : '';
   }
@@ -1053,14 +1067,15 @@
     const snapshot = developerMode ? {} : getLeaderboardRankSnapshot(levelKey);
     list.innerHTML = rows.map((row, index) => {
       const rank = index + 1;
+      const displayName = getLeaderboardDisplayName(row.player_name);
       const move = developerMode ? null : getLeaderboardMove(row, rank, snapshot);
       const badge = developerMode ? null : getLeaderboardBadge(row.highscore, rank);
       const moveMarkup = move ? `<span class="leaderboard-move ${move.className}" aria-label="${move.label}">${move.symbol}</span>` : '';
       const badgeMarkup = badge ? `<span class="leaderboard-badge ${badge.className}" title="${badge.title}">${badge.label}</span>` : '';
-      const avatarSrc = getLeaderboardAvatar(row.player_name);
+      const avatarSrc = getLeaderboardAvatar(displayName);
       const avatarCoreMarkup = avatarSrc
         ? `<span class="leaderboard-avatar"><img src="${escapeHtml(avatarSrc)}" alt="" loading="lazy"></span>`
-        : `<span class="leaderboard-avatar fallback" aria-hidden="true">${escapeHtml(getLeaderboardInitials(row.player_name || 'PLAYER'))}</span>`;
+        : `<span class="leaderboard-avatar fallback" aria-hidden="true">${escapeHtml(getLeaderboardInitials(displayName))}</span>`;
       const avatarMarkup = !developerMode && rank === 1
         ? `<span class="leaderboard-avatar-wrap champion-avatar">${avatarCoreMarkup}<span class="leaderboard-avatar-crown" aria-label="Platz 1">♛</span></span>`
         : avatarCoreMarkup;
@@ -1077,7 +1092,7 @@
           <article class="leaderboard-row developer-view${row.player_id === ownId ? ' current-player' : ''}">
             <span class="leaderboard-rank">#${rank}</span>
             ${avatarMarkup}
-            <div class="leaderboard-name"><span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong></span>${activityMarkup}</div>
+            <div class="leaderboard-name"><span class="leaderboard-name-title"><strong>${escapeHtml(displayName)}</strong></span>${activityMarkup}</div>
             <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)}</small></div>
           </article>
         `;
@@ -1087,7 +1102,7 @@
           ${moveMarkup}
           <span class="leaderboard-rank">#${rank}</span>
           <div class="leaderboard-name">
-            <span class="leaderboard-name-title"><strong>${escapeHtml(row.player_name || 'PLAYER')}</strong></span>
+            <span class="leaderboard-name-title"><strong>${escapeHtml(displayName)}</strong></span>
             ${badgeMarkup ? `<span class="leaderboard-badge-row">${badgeMarkup}</span>` : ''}
           </div>
           <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)} · <span class="leaderboard-collection-progress">${collectionProgress}%</span></small></div>
