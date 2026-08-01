@@ -943,6 +943,8 @@
     'GEORGE': 'George.png',
     'VOLV0X': 'volvox.png',
     'MYSTERY DILF': 'Mystery Dilf.png',
+    'BEN': 'Ben.png',
+    'BIGJO': 'BigJo.png',
     '25 CENT': '25 Cent.png'
   };
 
