@@ -341,7 +341,10 @@
     { name: 'BRI', image: 'assets/skin_bri.png', legCutRatio: .67, cost: 0, challenge: 'briExact', hiddenUnlockable: true },
     { name: 'BIG EM', image: 'assets/skin_big_em.png', legCutRatio: .67, cost: 0, challenge: 'bigEmExact', hiddenUnlockable: true },
     { name: 'ANDREW', image: 'assets/skin_andrew.png', legCutRatio: .67, cost: 0, challenge: 'andrewExact', hiddenUnlockable: true },
-    { name: '25 CENT', image: 'assets/skin_collin.png', legCutRatio: .67, cost: 0, challenge: 'collinExact', hiddenUnlockable: true }
+    { name: '25 CENT', image: 'assets/skin_collin.png', legCutRatio: .67, cost: 0, challenge: 'collinExact', hiddenUnlockable: true },
+    { name: 'EL SANTO', image: 'assets/skin_el_santo.png', legCutRatio: .67, cost: 0, challenge: 'elSantoExact', hiddenUnlockable: true },
+    { name: 'BIG T-LOW', image: 'assets/skin_big_t_low.png', legCutRatio: .67, cost: 0, challenge: 'bigTLowExact', hiddenUnlockable: true },
+    { name: 'HENRY', image: 'assets/skin_henry.png', legCutRatio: .67, cost: 0, challenge: 'henryExact', hiddenUnlockable: true }
   ];
 
   const opponents = [
@@ -725,7 +728,8 @@
   };
   const leaderboardLevels = {
     big_dilf: { opponentIndex: 0, label: 'BIG DILF' },
-    chestnut: { opponentIndex: 1, label: 'CHESTNUT' }
+    chestnut: { opponentIndex: 1, label: 'CHESTNUT' },
+    collection: { label: 'COLLECTION', collection: true }
   };
 
   function getLeaderboardHeaders(extra = {}) {
@@ -852,7 +856,7 @@
 
   function getLeaderboardPayload(levelKey) {
     const level = leaderboardLevels[levelKey];
-    if (!level) return null;
+    if (!level || !Number.isInteger(level.opponentIndex)) return null;
     const playerName = getLeaderboardPlayerName() || `PLAYER ${String(getLeaderboardPlayerId()).slice(-4).toUpperCase()}`;
     return {
       player_id: getLeaderboardPlayerId(),
@@ -885,7 +889,9 @@
   }
 
   function syncLeaderboardScores() {
-    Object.keys(leaderboardLevels).forEach(levelKey => uploadLeaderboardScore(levelKey));
+    Object.entries(leaderboardLevels).forEach(([levelKey, level]) => {
+      if (Number.isInteger(level.opponentIndex)) uploadLeaderboardScore(levelKey);
+    });
   }
 
   function formatLeaderboardDate(value) {
@@ -945,6 +951,8 @@
     'MYSTERY DILF': 'Mystery Dilf.png',
     'BEN': 'Ben.png',
     'BIGJO': 'BigJo.png',
+    'T-LOW': 'T-Low.png',
+    'NESSI': 'Nessi.png',
     '25 CENT': '25 Cent.png'
   };
 
@@ -1037,6 +1045,33 @@
     });
   }
 
+  function getCollectionLeaderboardRows(rows = []) {
+    const players = new Map();
+    (Array.isArray(rows) ? rows : []).forEach(row => {
+      const playerId = String(row?.player_id || '').trim();
+      const playerName = String(row?.player_name || '').trim();
+      const playerKey = playerId || (playerName ? `name:${normalizeLeaderboardName(playerName)}` : '');
+      if (!playerKey) return;
+      const current = players.get(playerKey);
+      const rowTime = new Date(row.updated_at || 0).getTime() || 0;
+      const currentTime = new Date(current?.updated_at || 0).getTime() || 0;
+      players.set(playerKey, {
+        ...(rowTime >= currentTime ? (current ? { ...current, ...row } : row) : (current || row)),
+        skins_owned: Math.max(Number(current?.skins_owned || 0), Number(row.skins_owned || 0)),
+        cars_owned: Math.max(Number(current?.cars_owned || 0), Number(row.cars_owned || 0)),
+        highscore: Math.max(Number(current?.highscore || 0), Number(row.highscore || 0))
+      });
+    });
+    return [...players.values()].sort((first, second) => {
+      const firstTotal = Number(first.skins_owned || 0) + Number(first.cars_owned || 0);
+      const secondTotal = Number(second.skins_owned || 0) + Number(second.cars_owned || 0);
+      if (secondTotal !== firstTotal) return secondTotal - firstTotal;
+      if (Number(second.skins_owned || 0) !== Number(first.skins_owned || 0)) return Number(second.skins_owned || 0) - Number(first.skins_owned || 0);
+      if (Number(second.cars_owned || 0) !== Number(first.cars_owned || 0)) return Number(second.cars_owned || 0) - Number(first.cars_owned || 0);
+      return String(first.player_name || '').localeCompare(String(second.player_name || ''));
+    });
+  }
+
   function setLeaderboardDeveloperMode(active) {
     leaderboardDeveloperMode = Boolean(active);
     screens.leaderboard?.classList.toggle('developer-mode', leaderboardDeveloperMode);
@@ -1066,12 +1101,13 @@
     const ownId = getLeaderboardPlayerId();
     const levelKey = options.levelKey || activeLeaderboardLevel;
     const developerMode = Boolean(options.developerMode);
+    const collectionMode = !developerMode && Boolean(options.collectionMode);
     const snapshot = developerMode ? {} : getLeaderboardRankSnapshot(levelKey);
     list.innerHTML = rows.map((row, index) => {
       const rank = index + 1;
       const displayName = getLeaderboardDisplayName(row.player_name);
       const move = developerMode ? null : getLeaderboardMove(row, rank, snapshot);
-      const badge = developerMode ? null : getLeaderboardBadge(row.highscore, rank);
+      const badge = developerMode ? null : getLeaderboardBadge(collectionMode ? 0 : row.highscore, rank);
       const moveMarkup = move ? `<span class="leaderboard-move ${move.className}" aria-label="${move.label}">${move.symbol}</span>` : '';
       const badgeMarkup = badge ? `<span class="leaderboard-badge ${badge.className}" title="${badge.title}">${badge.label}</span>` : '';
       const avatarSrc = getLeaderboardAvatar(displayName);
@@ -1100,14 +1136,17 @@
         `;
       }
       return `
-        <article class="leaderboard-row${rank === 1 ? ' champion' : ''}${row.player_id === ownId ? ' current-player' : ''}${!move ? ' no-rank-change' : ''}">
+        <article class="leaderboard-row${collectionMode ? ' collection-view' : ''}${rank === 1 ? ' champion' : ''}${row.player_id === ownId ? ' current-player' : ''}${!move ? ' no-rank-change' : ''}">
           ${moveMarkup}
           <span class="leaderboard-rank">#${rank}</span>
           <div class="leaderboard-name">
             <span class="leaderboard-name-title"><strong>${escapeHtml(displayName)}</strong></span>
             ${badgeMarkup ? `<span class="leaderboard-badge-row">${badgeMarkup}</span>` : ''}
           </div>
-          <div class="leaderboard-score"><strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)} · <span class="leaderboard-collection-progress">${collectionProgress}%</span></small></div>
+          <div class="leaderboard-score">${collectionMode
+            ? `<strong>${collectionProgress}%</strong><small>${escapeHtml(scoreMeta)}</small>`
+            : `<strong>${Number(row.highscore || 0)}m</strong><small>${escapeHtml(scoreMeta)} · <span class="leaderboard-collection-progress">${collectionProgress}%</span></small>`}
+          </div>
           ${avatarMarkup}
         </article>
       `;
@@ -1124,14 +1163,21 @@
     const status = $('#leaderboardStatus');
     if (status) status.textContent = leaderboardDeveloperMode ? 'DEVELOPER MODE · LÄDT...' : t('loading');
     try {
+      const collectionMode = !leaderboardDeveloperMode && Boolean(leaderboardLevels[levelKey]?.collection);
       const url = leaderboardDeveloperMode
         ? `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?select=player_id,player_name,level,highscore,skins_owned,cars_owned,updated_at&order=updated_at.desc`
-        : `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,level,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc`;
+        : collectionMode
+          ? `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?select=player_id,player_name,level,highscore,skins_owned,cars_owned,updated_at&order=updated_at.desc`
+          : `${LEADERBOARD_CONFIG.url}/rest/v1/${LEADERBOARD_CONFIG.table}?level=eq.${encodeURIComponent(levelKey)}&select=player_id,player_name,level,highscore,skins_owned,cars_owned,updated_at&order=highscore.desc`;
       const response = await fetch(url, { headers: getLeaderboardHeaders() });
       if (!response.ok) throw new Error('Leaderboard unavailable');
       const rows = await response.json();
-      const leaderboardRows = leaderboardDeveloperMode ? getLatestLeaderboardRowsByPlayer(rows) : rows;
-      renderLeaderboardRows(Array.isArray(leaderboardRows) ? leaderboardRows : [], { levelKey, developerMode: leaderboardDeveloperMode });
+      const leaderboardRows = leaderboardDeveloperMode
+        ? getLatestLeaderboardRowsByPlayer(rows)
+        : collectionMode
+          ? getCollectionLeaderboardRows(rows)
+          : rows;
+      renderLeaderboardRows(Array.isArray(leaderboardRows) ? leaderboardRows : [], { levelKey, developerMode: leaderboardDeveloperMode, collectionMode });
       if (status) {
         status.textContent = leaderboardDeveloperMode
           ? `DEVELOPER MODE · ${isGerman() ? 'ALLE LEVEL · AKTIVITÄT' : 'ALL LEVELS · RECENT ACTIVITY'}`
@@ -1455,6 +1501,9 @@
       case 'bigEmExact': return challengeState(hasExactFinish(94) || hasExactFinish(1810), 'Finish a Run with exactly 94m or 1810m', hasExactFinish(94) ? '94m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 EXACT 94m OR 1810m FINISH');
       case 'andrewExact': return challengeState(hasExactFinish(852, skinIndex('BRIAN')) || hasExactFinish(1810), 'Finish a Run with exactly 852m with BRIAN or 1810m', hasExactFinish(852, skinIndex('BRIAN')) ? 'BRIAN 852m FINISH ✓' : hasExactFinish(1810) ? '1810m FINISH ✓' : '0 / 1 BRIAN EXACT 852m OR 1810m FINISH');
       case 'collinExact': return challengeState(hasExactFinish(38) || hasExactFinish(2690), 'Finish a Run with exactly 38m or 2690m', hasExactFinish(38) ? '38m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 38m OR 2690m FINISH');
+      case 'elSantoExact': return challengeState(hasExactFinish(3687) || hasExactFinish(2690), 'Finish a Run with exactly 3687m or 2690m', hasExactFinish(3687) ? '3687m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 3687m OR 2690m FINISH');
+      case 'bigTLowExact': return challengeState(hasExactFinish(116) || hasExactFinish(2690), 'Finish a Run with exactly 116m or 2690m', hasExactFinish(116) ? '116m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 116m OR 2690m FINISH');
+      case 'henryExact': return challengeState(hasExactFinish(1704) || hasExactFinish(2690), 'Finish a Run with exactly 1704m or 2690m', hasExactFinish(1704) ? '1704m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 1704m OR 2690m FINISH');
       case 'goldFabel500': return countState(getCharacterRoundBest('gold', skinIndex('FABEL')), 500, 'Collect 500 Coins in one Run with FABEL', 'COINS');
       case 'carspotterAllCars': return challengeState(getOwnedCars().length === carOrder.length, 'Collect every Car', `${getOwnedCars().length} / ${carOrder.length} CARS`);
       case 'phantom500': return distanceState(getVehicleBestHighscore('rollsPhantom'), 500, 'Reach 500m using Rolls Royce Phantom', 'PHANTOM');
