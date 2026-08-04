@@ -344,7 +344,8 @@
     { name: '25 CENT', image: 'assets/skin_collin.png', legCutRatio: .67, cost: 0, challenge: 'collinExact', hiddenUnlockable: true },
     { name: 'EL SANTO', image: 'assets/skin_el_santo.png', legCutRatio: .67, cost: 0, challenge: 'elSantoExact', hiddenUnlockable: true },
     { name: 'BIG T-LOW', image: 'assets/skin_big_t_low.png', legCutRatio: .67, cost: 0, challenge: 'bigTLowExact', hiddenUnlockable: true },
-    { name: 'HENRY', image: 'assets/skin_henry.png', legCutRatio: .67, cost: 0, challenge: 'henryExact', hiddenUnlockable: true }
+    { name: 'HENRY', image: 'assets/skin_henry.png', legCutRatio: .67, cost: 0, challenge: 'henryExact', hiddenUnlockable: true },
+    { name: 'EMMA ONE', image: 'assets/skin_emma_one.png', legCutRatio: .67, cost: 0, challenge: 'emmaOneExact', hiddenUnlockable: true }
   ];
 
   const opponents = [
@@ -955,6 +956,7 @@
     'NESSI': 'Nessi.png',
     'PUYANEBANANE': 'PuyaneBanane.png',
     'SAM': 'Sam.png',
+    'EMMA': 'Emma.png',
     '25 CENT': '25 Cent.png'
   };
 
@@ -1506,6 +1508,7 @@
       case 'elSantoExact': return challengeState(hasExactFinish(3687) || hasExactFinish(2690), 'Finish a Run with exactly 3687m or 2690m', hasExactFinish(3687) ? '3687m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 3687m OR 2690m FINISH');
       case 'bigTLowExact': return challengeState(hasExactFinish(116) || hasExactFinish(2690), 'Finish a Run with exactly 116m or 2690m', hasExactFinish(116) ? '116m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 116m OR 2690m FINISH');
       case 'henryExact': return challengeState(hasExactFinish(1704) || hasExactFinish(2690), 'Finish a Run with exactly 1704m or 2690m', hasExactFinish(1704) ? '1704m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 1704m OR 2690m FINISH');
+      case 'emmaOneExact': return challengeState(hasExactFinish(338) || hasExactFinish(2690), 'Finish a Run with exactly 338m or 2690m', hasExactFinish(338) ? '338m FINISH ✓' : hasExactFinish(2690) ? '2690m FINISH ✓' : '0 / 1 EXACT 338m OR 2690m FINISH');
       case 'goldFabel500': return countState(getCharacterRoundBest('gold', skinIndex('FABEL')), 500, 'Collect 500 Coins in one Run with FABEL', 'COINS');
       case 'carspotterAllCars': return challengeState(getOwnedCars().length === carOrder.length, 'Collect every Car', `${getOwnedCars().length} / ${carOrder.length} CARS`);
       case 'phantom500': return distanceState(getVehicleBestHighscore('rollsPhantom'), 500, 'Reach 500m using Rolls Royce Phantom', 'PHANTOM');
