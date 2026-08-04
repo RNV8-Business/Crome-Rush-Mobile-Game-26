@@ -953,6 +953,8 @@
     'BIGJO': 'BigJo.png',
     'T-LOW': 'T-Low.png',
     'NESSI': 'Nessi.png',
+    'PUYANEBANANE': 'PuyaneBanane.png',
+    'SAM': 'Sam.png',
     '25 CENT': '25 Cent.png'
   };
 
